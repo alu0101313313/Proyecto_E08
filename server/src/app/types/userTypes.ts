@@ -39,7 +39,7 @@ export interface IUser extends Document {
   // Referencias a los intercambios en los que participa el usuario
   trades: Types.ObjectId[];
   
-  // notifications se podria implementar más adelante? *
+  // notifications se podria implementar más adelante? * no se como implementarlo bien *
   // notifications: INotification[];
 
   // metodo para comparar contraseñas
