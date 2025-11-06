@@ -1,0 +1,57 @@
+.
+├── client
+│   ├── bun.lock
+│   ├── eslint.config.mjs
+│   ├── next-env.d.ts
+│   ├── next.config.ts
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── public
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── logo.png
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   ├── src
+│   │   └── app
+│   │       ├── components
+│   │       │   ├── AuthForm.module.css
+│   │       │   ├── LoginForm.tsx
+│   │       │   └── RegisterForm.tsx
+│   │       ├── favicon.ico
+│   │       ├── globals.css
+│   │       ├── layout.tsx
+│   │       ├── login
+│   │       │   └── page.tsx
+│   │       ├── page.tsx
+│   │       └── register
+│   │           └── page.tsx
+│   └── tsconfig.json
+├── directorios.txt
+└── server
+    ├── README.md
+    ├── bun.lock
+    ├── package-lock.json
+    ├── package.json
+    ├── src
+    │   ├── app
+    │   │   ├── auth
+    │   │   │   ├── authRoutes.ts
+    │   │   │   ├── login.controller.ts
+    │   │   │   └── register.controller.ts
+    │   │   ├── card
+    │   │   ├── collection
+    │   │   ├── lib
+    │   │   │   └── db
+    │   │   │       └── connectDB.ts
+    │   │   ├── trades
+    │   │   ├── types
+    │   │   │   └── userTypes.ts
+    │   │   ├── users
+    │   │   │   └── userModel.ts
+    │   │   └── wishlist
+    │   └── server.ts
+    └── tsconfig.json
+
+20 directories, 35 files
