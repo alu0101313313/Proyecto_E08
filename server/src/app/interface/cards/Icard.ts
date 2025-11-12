@@ -1,6 +1,7 @@
 import type { TypeCard } from "../../enums/typeCard.js";
 import type { TypeCardRarity } from "../../enums/typeCardRarity.js";
 import type { ISetBrief } from "../ISets.js";
+import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
 //import type { API_IMAGE_URL, API_URL } from "../IAPI.js";
 
 export interface ICard extends Document {
@@ -22,6 +23,7 @@ export interface ICard extends Document {
     wPromo: boolean;
   }
   updated: String;
+  condition: TypeConditionCard;
 }
 
 export interface ICardBrief extends Document {
