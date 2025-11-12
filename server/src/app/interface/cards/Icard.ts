@@ -3,7 +3,7 @@ import type { TypeCardRarity } from "../../enums/typeCardRarity.js";
 import type { ISetBrief } from "../ISets.js";
 //import type { API_IMAGE_URL, API_URL } from "../IAPI.js";
 
-export interface ICard {
+export interface ICard extends Document {
   id_card: {
     set: string;
     number: string;
@@ -24,7 +24,7 @@ export interface ICard {
   updated: String;
 }
 
-export interface ICardBrief {
+export interface ICardBrief extends Document {
   idCard: string;
   localIDCard: string;
   name: string;

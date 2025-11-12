@@ -1,6 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import type { IUser } from '../types/userTypes';
+import type { IUser } from '../interface/IUsers';
 
 /**
  * Schema para las cartas dentro de la colección de un usuario.

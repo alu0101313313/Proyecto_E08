@@ -4,7 +4,7 @@ import type { TypeCurrency } from "../../enums/typeCurrency.js";
 import type { TypePokemon } from "../../enums/typePokemon.js";
 import type { ICard } from "./Icard.js";
 
-export interface IPokemonCard {
+export interface IPokemonCard extends Document{
   commonCardProperties: ICard;
   category: TypeCard;
   hp: number;

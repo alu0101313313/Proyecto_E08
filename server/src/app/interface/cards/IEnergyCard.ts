@@ -2,7 +2,7 @@ import type { TypeCard } from "../../enums/typeCard.js";
 import type { TypeEnergy } from "../../enums/typeEnergy.js";
 import type { ICard } from "./Icard.js";
 
-export interface IEnergyCard {
+export interface IEnergyCard extends Document{
   commonCardProperties: ICard;
   category: TypeCard;
   energyType: TypeEnergy;

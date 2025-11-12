@@ -1,11 +1,9 @@
-import type { IEnergyCard } from "./cards/IEnergyCard.js";
-import type { IPokemonCard } from "./cards/IPokemonCard.js";
-import type { ITrainerCard } from "./cards/ITrainerCard.js";
+import type { ICard } from "./cards/Icard.js";
 
-export interface ICollection {
+export interface ICollection extends Document{
   id: string;
   name: string;
   logo: string;
   cardsCount: number;
-  cards: Array<IPokemonCard | ITrainerCard | IEnergyCard>;
+  cards: Array<ICard>;
 }

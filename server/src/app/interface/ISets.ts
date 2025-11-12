@@ -1,7 +1,7 @@
 import type { ICardBrief } from "./cards/Icard.js";
 import type { ISeriesBrief } from "./ISeries.js";
 
-export interface ISet {
+export interface ISet extends Document{
   idSet: string;
   name: string;
   logo?: string;
@@ -22,7 +22,7 @@ export interface ISet {
   cards: Array<ICardBrief>;
 }
 
-export interface ISetBrief {
+export interface ISetBrief extends Document{
   idSet: string;
   name: string;
   logo: string;
