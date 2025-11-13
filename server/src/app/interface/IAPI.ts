@@ -1,7 +1,7 @@
 import { ILanguage } from '../enums/enumLanguageAPI.js';
+import TCGdex from '@tcgdex/sdk';
 
-export const API_URL = `http://api.tcgdex.net/v2/${ILanguage.EN}`; 
-export const API_IMAGE_URL = `https://assets.tcgdex.net/${ILanguage.EN}`;
+export const tcgdex = new TCGdex(`${ILanguage.EN}`); 
 
 /*
 http://api.tcgdex.net/v2/${API_LANGUAGE}/${API_DATA}?${filter}
