@@ -1,7 +1,8 @@
+import type { Document } from "mongoose";
 import type { ICardBrief } from "./cards/Icard.js";
 import type { ISeriesBrief } from "./ISeries.js";
 
-export interface ISet extends Document{
+export interface ISet extends Document {
   idSet: string;
   name: string;
   logo?: string;
@@ -22,7 +23,7 @@ export interface ISet extends Document{
   cards: Array<ICardBrief>;
 }
 
-export interface ISetBrief extends Document{
+export interface ISetBrief extends Document {
   idSet: string;
   name: string;
   logo: string;
