@@ -3,6 +3,7 @@ import type { TypeCard } from "../../enums/typeCard.js";
 import type { TypeCurrency } from "../../enums/typeCurrency.js";
 import type { TypePokemon } from "../../enums/typePokemon.js";
 import type { ICard } from "./Icard.js";
+import { Document } from "mongoose";
 
 export interface IPokemonCard extends Document{
   commonCardProperties: ICard;

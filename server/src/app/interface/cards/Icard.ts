@@ -2,7 +2,7 @@ import type { TypeCard } from "../../enums/typeCard.js";
 import type { TypeCardRarity } from "../../enums/typeCardRarity.js";
 import type { ISetBrief } from "../ISets.js";
 import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
-//import type { API_IMAGE_URL, API_URL } from "../IAPI.js";
+// import { Document } from "mongoose";
 
 export interface ICard extends Document {
   id_card: {
