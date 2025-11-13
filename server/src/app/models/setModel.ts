@@ -2,7 +2,7 @@ import {model, Schema} from 'mongoose';
 import type { ISet } from '../interface/ISets.js';
 
 const setSchema = new Schema<ISet>({
-  idSet: { type: String, required: true },
+  idSet: { type: String, required: true , unique: true },
   name: { type: String, required: true },
   logo: { type: String },
   symbol: { type: String, required: true },
