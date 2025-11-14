@@ -50,9 +50,12 @@ export default function FilterSidebar( { totalValue, totalCards }: FilterSidebar
       {openFilter.edicion && (
         <div className="mt-2 pl-4 text-gray-400">
           {/* Aquí irían las opciones específicas del filtro de edición */}
-          <p className="text-sm hover:text-white cursor-pointer">Opción 1</p>
-          <p className="text-sm hover:text-white cursor-pointer">Opción 2</p>
-          <p className="text-sm hover:text-white cursor-pointer">Opción 3</p>
+          <p className="text-sm hover:text-white cursor-pointer">Journey Together</p>
+          <p className="text-sm hover:text-white cursor-pointer">Destined Rivals</p>
+          <p className="text-sm hover:text-white cursor-pointer">Black Bolt</p>
+          <p className="text-sm hover:text-white cursor-pointer">White Flare</p>
+          <p className="text-sm hover:text-white cursor-pointer">Mega Evolution</p>
+          <p className="text-sm hover:text-white cursor-pointer">Phantasmal Flames</p>
         </div>
       )}
       {/* Linea de separación */}
@@ -73,9 +76,16 @@ export default function FilterSidebar( { totalValue, totalCards }: FilterSidebar
         <div className="mt-2 pl-4 text-gray-400">
           {/* Aquí irían las opciones específicas del filtro de rareza */}
           <p className="text-sm hover:text-white cursor-pointer">Común</p>
+          <p className="text-sm hover:text-white cursor-pointer">Infrecuente</p>
           <p className="text-sm hover:text-white cursor-pointer">Rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Épica</p>
-          <p className="text-sm hover:text-white cursor-pointer">Legendaria</p>
+          <p className="text-sm hover:text-white cursor-pointer">Doble rara</p>
+          <p className="text-sm hover:text-white cursor-pointer">Ilustracion rara</p>
+          <p className="text-sm hover:text-white cursor-pointer">Ilustracion especial rara</p>
+          <p className="text-sm hover:text-white cursor-pointer">Ultra rara</p>
+          <p className="text-sm hover:text-white cursor-pointer">Hiper rara</p>
+          <p className="text-sm hover:text-white cursor-pointer">Reverse Holo</p>
+          <p className="text-sm hover:text-white cursor-pointer">Promo</p>
+
         </div>
       )}
       {/* Linea de separación */}
@@ -94,9 +104,14 @@ export default function FilterSidebar( { totalValue, totalCards }: FilterSidebar
       {openFilter.condicion && (
         <div className="mt-2 pl-4 text-gray-400">
           {/* Aquí irían las opciones específicas del filtro de condición */}
-          <p className="text-sm hover:text-white cursor-pointer">Nuevo</p>
-          <p className="text-sm hover:text-white cursor-pointer">Usado - Bueno</p>
-          <p className="text-sm hover:text-white cursor-pointer">Usado - Aceptable</p>
+          <p className="text-sm hover:text-white cursor-pointer">Gradeada</p>
+          <p className="text-sm hover:text-white cursor-pointer">Perfecta</p>
+          <p className="text-sm hover:text-white cursor-pointer">Casi perfecta</p>
+          <p className="text-sm hover:text-white cursor-pointer">Ligeramente jugada</p>
+          <p className="text-sm hover:text-white cursor-pointer">Jugada</p>
+          <p className="text-sm hover:text-white cursor-pointer">Muy jugada</p>
+          <p className="text-sm hover:text-white cursor-pointer">Dañada</p>
+
         </div>
       )}
 

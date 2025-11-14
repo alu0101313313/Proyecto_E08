@@ -29,6 +29,7 @@ const mockCardsData = [
   { id: 3, name: "Energía Fuego", value: 0.10 },
   { id: 4, name: "Darkrai VSTAR", value: 12.00 },
   { id: 5, name: "Mewtwo EX", value: 22.64 },
+  { id: 6, name: "Bulbasaur", value: 300.78 },
 ]
 // funcion que calcula el valor total de las cartas
 const calculateTotalValue = (cards: { id: number; name: string; value: number }[]) => {
