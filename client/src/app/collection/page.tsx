@@ -23,7 +23,24 @@ import AppHeader from '@/app/components/collection/AppHeader'; // <-- 1. Importa
 import FilterSidebar from '@/app/components/collection/FilterSidebar';
 import CardGrid from '@/app/components/collection/CardGrid';
 
+const mockCardsData = [
+  { id: 1, name: "Pikachu V", value: 4.50 },
+  { id: 2, name: "Charizard VMAX", value: 85.00 },
+  { id: 3, name: "Energía Fuego", value: 0.10 },
+  { id: 4, name: "Darkrai VSTAR", value: 12.00 },
+  { id: 5, name: "Mewtwo EX", value: 22.64 },
+]
+// funcion que calcula el valor total de las cartas
+const calculateTotalValue = (cards: { id: number; name: string; value: number }[]) => {
+  const total = cards.reduce((sum, card) => sum + card.value, 0);
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total);
+  // devuelve el total formateado en euros
+}
+
 export default function CollectionPage() {
+
+  const totalValueCalculated = calculateTotalValue(mockCardsData);  
+  const totalCards = mockCardsData.length;
   return (
     // CONTENEDOR DE PÁGINA COMPLETA
     // 'flex-col' apila los elementos verticalmente (Header encima de Contenido)
@@ -37,7 +54,10 @@ export default function CollectionPage() {
         
         {/* COLUMNA IZQUIERDA (Sidebar de Filtros) */}
         <aside className="w-1/4">
-          <FilterSidebar />
+          <FilterSidebar 
+            totalValue={totalValueCalculated}
+            totalCards={totalCards}
+          />
         </aside>
 
         {/* COLUMNA DERECHA (Cuadrícula de Cartas) */}

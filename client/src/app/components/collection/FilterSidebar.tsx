@@ -1,9 +1,12 @@
 'use client';
 import React from 'react';
 import { useState } from 'react'; // esto es para manejar estados si es necesario
-export default function FilterSidebar() {
-  const totalValue = "124,32€"; // valor total de las cartas filtradas (es un ejemplo)
-  const totalCards = "58"; // número total de cartas filtradas (es un ejemplo)
+
+interface FilterSidebarProps { // define las props que recibe el componente de filtro
+  totalValue: string;
+  totalCards: number;
+}
+export default function FilterSidebar( { totalValue, totalCards }: FilterSidebarProps) {
   // mapa para decir que filtros estan activos (si es necesario)
   // openFilter es el objeto que recuerda los filtros abiertos o seleccionados
   // setOpenFilter es la función para actualizar ese objeto
