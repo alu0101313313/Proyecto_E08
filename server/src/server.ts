@@ -46,6 +46,6 @@ app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
-app.all('/{*splat}', (_, res) => {
-  res.status(501).send();
-});
+// app.all('/{*splat}', (_, res) => {
+//   res.status(501).send();
+// });
