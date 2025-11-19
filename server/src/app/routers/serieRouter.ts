@@ -9,6 +9,8 @@ export const serieRouter = express.Router();
 // CRUD operations for Serie can be added here
 
 serieRouter.post("/series", async (req, res) => {
+
+  console.log("Entro en la POST SERIES");
   
   const { id } = req.body;
   
