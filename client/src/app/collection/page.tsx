@@ -24,13 +24,16 @@ import FilterSidebar from '@/app/components/collection/FilterSidebar';
 import CardGrid from '@/app/components/collection/CardGrid';
 
 const mockCardsData = [
-  { id: 1, name: "Pikachu V", value: 4.50 },
-  { id: 2, name: "Charizard VMAX", value: 85.00 },
-  { id: 3, name: "Energía Fuego", value: 0.10 },
-  { id: 4, name: "Darkrai VSTAR", value: 12.00 },
-  { id: 5, name: "Mewtwo EX", value: 22.64 },
-  { id: 6, name: "Bulbasaur", value: 300.78 },
-]
+  { id: 1, name: "Pikachu Celebrations", value: 4.50, imageUrl: "https://images.pokemontcg.io/cel/25.png" },
+  { id: 2, name: "Pikachu Base Set", value: 85.00, imageUrl: "https://images.pokemontcg.io/base1/58.png" },
+  { id: 3, name: "Fire Energy", value: 0.10, imageUrl: "https://images.pokemontcg.io/base1/105.png" },
+  { id: 4, name: "Darkrai VSTAR", value: 12.00, imageUrl: "https://images.pokemontcg.io/swsh9/88_ptcgo1.png" },
+  { id: 5, name: "Zoroark VSTAR", value: 22.64, imageUrl: "https://images.pokemontcg.io/swsh11/147_ptcgo1.png" },
+  { id: 6, name: "Lucario V", value: 3.00, imageUrl: "https://images.pokemontcg.io/swsh9/78_ptcgo1.png" },
+  { id: 7, name: "Darkness Ablaze Charizard", value: 15.00, imageUrl: "https://images.pokemontcg.io/swsh3/20_ptcgo1.png" },
+  { id: 8, name: "Arceus V", value: 9.50, imageUrl: "https://images.pokemontcg.io/swsh9/122_ptcgo1.png" },
+];
+
 // funcion que calcula el valor total de las cartas
 const calculateTotalValue = (cards: { id: number; name: string; value: number }[]) => {
   const total = cards.reduce((sum, card) => sum + card.value, 0);
