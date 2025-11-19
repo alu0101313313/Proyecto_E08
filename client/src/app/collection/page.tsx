@@ -20,7 +20,7 @@
 // }
 
 import AppHeader from '@/app/components/collection/AppHeader'; // <-- 1. Importa el Header
-import FilterSidebar from '@/app/components/collection/FilterSidebar';
+import FilterSidebar from '@/app/components/collection/FilterSidebar'; // <-- 2. Importa el Sidebar
 import CardGrid from '@/app/components/collection/CardGrid';
 
 const mockCardsData = [
