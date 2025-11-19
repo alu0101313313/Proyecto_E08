@@ -1,6 +1,6 @@
 import express from "express";
 import { TypeCard } from "../enums/typeCard";
-import { tcgdex } from "../interface/IAPI.js";
+import { tcgdex } from "../utils/utils.js";
 import { dataclassToDict } from "../utils/utils.js";
 import type { IPokemonCard } from "../interface/cards/IPokemonCard.js";
 import { PokemonCard } from "../models/cards/pokemonCardModel.js";

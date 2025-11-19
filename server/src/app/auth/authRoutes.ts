@@ -2,7 +2,6 @@ import  { Router } from 'express';
 import type { Request, Response } from 'express';
 import { registerUser } from './register.controller';
 import { loginUser } from './login.controller';
-import { serieRouter } from '../routers/serieRouter';
 
 const router = Router();
 
@@ -24,7 +23,5 @@ router.post('/logout', (req: Request, res: Response) => {
   });
   res.status(200).json({ message: 'Sesión cerrada exitosamente' });
 });
-
-router.post('/series', serieRouter);
 
 export default router;

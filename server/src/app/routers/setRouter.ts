@@ -1,6 +1,6 @@
 import express from 'express';
 import { Sets } from '../models/setModel.js';
-import { tcgdex } from '../interface/IAPI.js';
+import { tcgdex } from '../utils/utils.js';
 import { dataclassToDict } from '../utils/utils.js';
 import type { ISet } from '../interface/ISets.js';
 

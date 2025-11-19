@@ -2,7 +2,7 @@ import type { TypeCard } from "../../enums/typeCard.js";
 import type { TypeCardRarity } from "../../enums/typeCardRarity.js";
 import type { ISetBrief } from "../ISets.js";
 import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
-// import { Document } from "mongoose";
+import { Document } from "mongoose";
 
 export interface ICard extends Document {
   id_card: {
@@ -14,7 +14,7 @@ export interface ICard extends Document {
   category: TypeCard;
   rarity: TypeCardRarity;
   ilustrator: string;
-  set: ISetBrief;
+  setName: ISetBrief;
   variants: {
     firstedition: boolean;
     holo: boolean;
@@ -24,6 +24,7 @@ export interface ICard extends Document {
   }
   updated: String;
   condition: TypeConditionCard;
+  isTradable: boolean;
 }
 
 export interface ICardBrief extends Document {

@@ -10,6 +10,8 @@ const energyCardSchema = new Schema<IEnergyCard>({
     set: { type: Object, required: true },
     variants: { type: Object, required: true },
     updated: { type: String, required: true },
+    condition: { type: String, required: true },
+    isTradable: { type: Boolean, required: true },
   },
   category: { type: String, required: true },
   energyType: { type: String, required: true },

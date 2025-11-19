@@ -3,9 +3,9 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser'; // Importamos cookie-parser
 import connectDB from './app/lib/db/connectDB';
 import authRoutes from './app/auth/authRoutes'; // Importamos las rutas de auth
+// Importa aquí tus otras rutas (usuarios, cartas, etc.)
 import { serieRouter } from './app/routers/serieRouter';
 import { setRouter } from './app/routers/setRouter';
-// Importa aquí tus otras rutas (usuarios, cartas, etc.)
 
 // Cargar variables de entorno
 dotenv.config();
@@ -44,4 +44,8 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
+
+app.all('/{*splat}', (_, res) => {
+  res.status(501).send();
 });

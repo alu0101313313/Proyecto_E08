@@ -1,7 +1,7 @@
 import express from 'express';
 import { Series } from '../models/serieModel.js';
 import type { ISeries } from '../interface/ISeries.js';
-import { tcgdex } from '../interface/IAPI.js';
+import { tcgdex } from '../utils/utils.js';
 import { dataclassToDict } from '../utils/utils.js';
 
 export const serieRouter = express.Router();

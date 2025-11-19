@@ -10,6 +10,8 @@ const trainerCardSchema = new Schema<ITrainerCard>({
     set: { type: Object, required: true },
     variants: { type: Object, required: true },
     updated: { type: String, required: true },
+    condition: { type: String, required: true },
+    isTradable: { type: Boolean, required: true },
   },
   category: { type: String, required: true },
   trainerType: { type: String, required: true },

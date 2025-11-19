@@ -10,6 +10,8 @@ const pokemonCardSchema = new Schema<IPokemonCard>({
     set: { type: Object, required: true },
     variants: { type: Object, required: true },
     updated: { type: String, required: true },
+    condition: { type: String, required: true },
+    isTradable: { type: Boolean, required: true },
   },
   category: { type: String, required: true },
   hp: { type: Number, required: true },
