@@ -6,6 +6,11 @@ import { dataclassToDict } from '../utils/utils.js';
 
 export const serieRouter = express.Router();
 
+/**
+ * @desc Crear una nueva serie en la base de datos.
+ * @route POST /series
+ * @access Public
+ */
 serieRouter.post("/series", async (req, res) => {
   
   const { id } = req.body;
@@ -37,6 +42,11 @@ serieRouter.post("/series", async (req, res) => {
   }
 });
 
+/** 
+ * @desc Obtener una serie por su ID único de la base de datos.
+ * @route GET /series/:_id
+ * @access Public
+*/
 serieRouter.get("/series/:_id", async (req, res) => {
   const { _id } = req.params;
   try {
@@ -50,6 +60,11 @@ serieRouter.get("/series/:_id", async (req, res) => {
   }
 });
 
+/** 
+ * @desc Obtener todas las series o filtrar por nombre.
+ * @route GET /series
+ * @access Public
+ */
 serieRouter.get("/series", async (req, res) => {
   const filter = req.query.name ? { name: req.query.name.toString() } : {};
 
@@ -62,6 +77,11 @@ serieRouter.get("/series", async (req, res) => {
 
 });
 
+/**
+ * @desc Obtener una serie por su ID de serie (no el _id de MongoDB).
+ * @route GET /series/id/:id
+ * @access Public
+ */
 serieRouter.get("/series/:id", async (req, res) => {
   try {
     const query = req.params.id
@@ -78,6 +98,11 @@ serieRouter.get("/series/:id", async (req, res) => {
 
 // serieRouter.patch() <- no se si va a hacer falta
 
+/**
+ * @desc Eliminar una serie de la base de datos según su ID único.
+ * @route DELETE /series/:id
+ * @access Public
+ */
 serieRouter.delete("/series/:id", async (req, res) => {
   try {
     const query = req.params.id

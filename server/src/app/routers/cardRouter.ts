@@ -11,11 +11,15 @@ import { EnergyCard } from "../models/cards/energyCardModel.js";
 
 export const cardRouter = express.Router();
 
+/**
+ * @desc Crear una nueva carta en la base de datos según su categoría (Pokémon, Entrenador o Energía).
+ * @route POST /cards
+ * @access Public
+ */
 cardRouter.post("/cards", async (req, res) => {
 
   const id_ = req.body.id;
   const category = req.body.category;
-  //console.log('Received ID:', id_, 'Category:', category);
 
   if (!id_ || !category) {
     return res.status(400).json({ message: "ID and category are required" });
@@ -34,7 +38,6 @@ cardRouter.post("/cards", async (req, res) => {
       const cardJSON = JSON.stringify(cardDict, null, 2);
       const cardData = JSON.parse(cardJSON) as IPokemonCard;
 
-      // Crear modelo antes de guardar
       const newPokemon = new PokemonCard(cardData as any);
       await newPokemon.save();
       res.status(201).json({ message: "Pokemon Card created successfully", newPokemon });
@@ -83,6 +86,12 @@ cardRouter.post("/cards", async (req, res) => {
   }
 }); 
 
+
+/**
+ * @desc Obtener una carta de la base de datos según su ID y categoría (Pokémon, Entrenador o Energía).
+ * @route GET /cards
+ * @access Public
+ */
 cardRouter.get("/cards", async (req, res) => {
 
   if (!req.query.id || !req.query.category) {
@@ -112,6 +121,12 @@ cardRouter.get("/cards", async (req, res) => {
 
 // cardRouter.patch() <- no se si va a hacer falta
 
+
+/**
+ * @desc Eliminar una carta de la base de datos según su ID y categoría (Pokémon, Entrenador o Energía).
+ * @route DELETE /cards
+ * @access Public
+ */
 cardRouter.delete("/cards", async (req, res) => {
   const id = req.body.id;
   const category = req.body.category;

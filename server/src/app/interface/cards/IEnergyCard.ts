@@ -5,6 +5,26 @@ import type { TypeEnergy } from "../../enums/typeEnergy.js";
 import type { ISetBrief } from "../ISets.js";
 import { Document } from "mongoose";
 
+/**
+ * Interfaz principal para el documento de EnergyCard.
+ * 
+ * @id Identificador único de la carta de energía.
+ * @idSet Identificador del set al que pertenece la carta.
+ * @idNumber Número identificador dentro del set.
+ * @name Nombre de la carta de energía.
+ * @image URL de la imagen de la carta.
+ * @rarity Rareza de la carta.
+ * @ilustrator Nombre del ilustrador de la carta.
+ * @setName Objeto que representa el set al que pertenece la carta.
+ * @variants Objeto que indica las variantes disponibles de la carta.
+ * @updated Fecha de la última actualización de la carta.
+ * @condition Condición física de la carta.
+ * @isTradable Indica si la carta es intercambiable.
+ * @category Categoría de la carta (debe ser de tipo energía).
+ * @energyType Tipo de energía representada por la carta.
+ * @energyTypePokemon Array de tipos de energía asociados a Pokémon.
+ * @effect Descripción del efecto de la carta de energía.
+ */
 export interface IEnergyCard extends Document{
   //commonCardProperties: ICard;
   id: string;

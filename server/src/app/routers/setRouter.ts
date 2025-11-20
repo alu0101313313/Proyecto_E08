@@ -6,6 +6,11 @@ import type { ISet } from '../interface/ISets.js';
 
 export const setRouter = express.Router();
 
+/**
+ * @desc Crear un nuevo set en la base de datos.
+ * @route POST /sets
+ * @access Public
+ */
 setRouter.post("/sets", async (req, res) => {
 
   const { id } = req.body;
@@ -37,6 +42,11 @@ setRouter.post("/sets", async (req, res) => {
   }
 });
 
+/**
+ * @desc Obtener un set por su ID único de la base de datos.
+ * @route GET /sets/:_id
+ * @access Public
+*/
 setRouter.get("/sets/:_id", async (req, res) => {
   const { _id } = req.params;
   try {
@@ -50,6 +60,12 @@ setRouter.get("/sets/:_id", async (req, res) => {
   }
 });
 
+
+/** 
+ * @desc Obtener todas los sets o filtrar por nombre.
+ * @route GET /sets
+ * @access Public
+ */
 setRouter.get("/sets", async (req, res) => {
   const filter = req.query.name ? { name: req.query.name.toString() } : {};
 
@@ -61,6 +77,11 @@ setRouter.get("/sets", async (req, res) => {
   }
 });
 
+/**
+ * @desc Obtener un set por su ID de la base de datos.
+ * @route GET /sets/:id
+ * @access Public
+ */
 setRouter.get("/sets/:id", async (req, res) => {
 
   const { id } = req.params;
@@ -78,6 +99,11 @@ setRouter.get("/sets/:id", async (req, res) => {
 
 // setRouter.patch() <- no se si va a hacer falta
 
+/**
+ * @desc Eliminar un set de la base de datos según su ID único.
+ * @route DELETE /sets/:_id
+ * @access Public
+ */
 setRouter.delete("/sets/:_id", async (req, res) => {
   const { _id } = req.params;
 
