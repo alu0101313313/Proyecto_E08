@@ -2,7 +2,7 @@ import {model, Schema} from 'mongoose';
 import type { ISeries } from '../interface/ISeries.js';
 
 const serieSchema = new Schema<ISeries>({
-  id: { type: String, required: true },
+  id: { type: String, required: true , unique: true },
   name: { type: String, required: true },
   logo: { type: String, required: true },
   sets: { type: [Object], required: true },

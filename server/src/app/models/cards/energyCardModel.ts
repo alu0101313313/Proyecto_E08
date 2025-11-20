@@ -2,19 +2,17 @@ import { model, Schema } from "mongoose";
 import type { IEnergyCard } from "../../interface/cards/IEnergyCard.js";
 
 const energyCardSchema = new Schema<IEnergyCard>({
-  commonCardProperties: {
-    id_card: { type: String, required: true },
-    localID_card: { type: String, required: true },
-    name: { type: String, required: true },
-    category: { type: String, required: true },
-    set: { type: Object, required: true },
-    variants: { type: Object, required: true },
-    updated: { type: String, required: true },
-  },
+  id: { type: String, required: true },
+  name: { type: String },
+  setName: { type: Object },
+  variants: { type: Object },
+  updated: { type: String },
+  condition: { type: String },
+  isTradable: { type: Boolean },
   category: { type: String, required: true },
-  energyType: { type: String, required: true },
-  energyTypePokemon: { type: [String], required: true },
-  effect: { type: String, required: true },
+  energyType: { type: String },
+  energyTypePokemon: { type: [String]},
+  effect: { type: String },
 })
 
 export const EnergyCard = model<IEnergyCard>('EnergyCard', energyCardSchema);
