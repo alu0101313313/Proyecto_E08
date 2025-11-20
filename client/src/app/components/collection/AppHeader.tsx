@@ -1,4 +1,5 @@
 "use client";
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -6,7 +7,19 @@ import Image from 'next/image';
 const BellIcon = () => <span>🔔</span>;
 const UserIcon = () => <span>👤</span>; // esto se reemplazará por un icono real
 
+
 export default function AppHeader() {
+ {/* estado para la barra de búsqueda (simplificada por ahora)*/} 
+  const [SearchTerm, setSearchTerm] = useState('');
+
+  {/* funcion para manejar tecla enter en la barra de búsqueda */}
+  const handleSearch=(event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      // aquí iría la lógica de búsqueda real
+      console.log('Buscar:', SearchTerm);
+      alert(`Buscar: ${SearchTerm}`); // alerta temporal para mostrar el término de búsqueda
+    }
+  };
   return (
     <header className="flex items-center justify-between w-full p-4 bg-gray-800 border-b border-gray-700">
       
@@ -45,16 +58,33 @@ export default function AppHeader() {
         <button className="text-gray-400 hover:text-white">
           <BellIcon />
         </button>
+        <div className="relative">
+          <input 
+            type="text"
+            placeholder="Search"
+            value={SearchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleSearch}
+            className="
+              bg-gray-700 
+              text-white 
+              pl-4 pr-3 py-2
+              rounded-lg
+              text-sm
+              w-64
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-600
+              focus:bg-gray-600
+              placeholder-gray-400
+              transition-all
+            "
+          />
+        </div>
         
-        {/* Barra de Búsqueda (simplificada) */}
-        <input 
-          type="text" 
-          placeholder="Search" 
-          className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm w-48"
-        />
-        
+        {/* Icono de usuario /perfil (futura impementacion) */}
         <button className="text-gray-400 hover:text-white">
-          <UserIcon />
+          <UserIcon /> 
         </button>
       </div>
       
