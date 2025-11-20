@@ -17,7 +17,7 @@ This project was created using `bun init` in bun v1.2.23. [Bun](https://bun.com)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Getting Started.
 
 First, run the development server:
 
