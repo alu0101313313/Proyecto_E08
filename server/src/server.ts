@@ -7,13 +7,8 @@ import authRoutes from './app/auth/authRoutes'; // Importamos las rutas de auth
 import { serieRouter } from './app/routers/serieRouter';
 import { setRouter } from './app/routers/setRouter';
 import { cardRouter } from './app/routers/cardRouter';
-
-// Cargar variables de entorno
-
 // Conectar a la base de datos
 import type { ErrorRequestHandler } from 'express';
-
-
 
 // variables de entorno
 dotenv.config();
@@ -48,13 +43,6 @@ app.use('/api', cardRouter);
 
 app.get('/', (req, res) => {
   res.send('API del servidor de Pokémon TCG funcionando');
-});
-
-// --- Manejo de Errores (Ejemplo básico) ---
-// Puedes añadir un middleware de manejo de errores más robusto aquí
-
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
 // app.all('/{*splat}', (_, res) => {
