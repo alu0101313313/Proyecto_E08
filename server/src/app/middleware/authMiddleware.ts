@@ -2,11 +2,10 @@ import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
-// Rutas actualizadas según tu estructura
 import User from '../models/userModel'; 
-import type { IUser } from '../interface/IUsers'; // Asumiendo que IUsers.ts exporta la interfaz IUser
+import type { IUser } from '../interface/IUsers';
 
-// Extendemos el tipo Request de Express para incluir la propiedad 'user'
+// extendemos para incluir la propiedad 'user'
 declare global {
   namespace Express {
     interface Request {
