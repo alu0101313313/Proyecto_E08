@@ -3,24 +3,18 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-
-// ¡Ya no se necesita un objeto 'styles' ni un archivo .css!
-
-// URL de la API (Corregida para apuntar a 'login')
-const API_URL = 'http://localhost:3001/api/auth/login';
+import { useRouter } from 'next/navigation'; // <-- 1. IMPORTAR EL ROUTER
 
 export default function LoginForm() {
   
-  // --- TU LÓGICA DE ESTADOS (SIN CAMBIOS) ---
+  // --- Estados (Tu lógica está perfecta) ---
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(''); 
   const [error, setError] = useState(''); 
   const [loading, setLoading] = useState(false); 
   
-  // ¡Ya NO necesitamos el estado 'hover'! Tailwind lo maneja automáticamente.
-  // const [hover, setHover] = useState(false); // <-- ELIMINADO
+  const router = useRouter(); // <-- 2. INICIALIZAR EL ROUTER
 
-  // --- TU LÓGICA handleSubmit (SIN CAMBIOS) ---
   const handleSubmit = async (formE: React.FormEvent) => {
     formE.preventDefault();
     setError('');
@@ -32,18 +26,24 @@ export default function LoginForm() {
         return;
     }
     try {
-      const response = await fetch(API_URL, { 
+      // --- 3. CAMBIO CLAVE: Usar la ruta relativa para el proxy ---
+      const response = await fetch('/api/auth/login', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify({ email, password }), 
       });
+
       const data = await response.json(); 
+      
       if (!response.ok) {
         setError(data.message || 'Error al iniciar sesión. Inténtalo de nuevo.');
+        setLoading(false); // Asegúrate de parar el loading en caso de error
         return;
       }
-      alert('¡Inicio de sesión exitoso!'); 
-      // router.push('/collection');
+      
+      // --- 4. CAMBIO CLAVE: Usar el router en lugar de alert() ---
+      // ¡Inicio de sesión exitoso!
+      router.push('/mi-coleccion'); // Redirige al usuario a su colección
     
     } catch (err) {
       setError('No se pudo conectar con el servidor API.');
@@ -52,11 +52,10 @@ export default function LoginForm() {
       setLoading(false); 
     }
   };
-  // --- FIN DE LA LÓGICA ---
 
 
-  // --- ESTRUCTURA JSX CON TAILWIND CSS ---
-  // Estas clases replican el diseño de la imagen 'fa267b.png'
+  // --- ESTRUCTURA JSX CON TAILWIND CSS (SIN CAMBIOS) ---
+  // Tu diseño se mantiene intacto
   return (
     // Contenedor de la "tarjeta"
     <div className="flex flex-col items-center p-8 bg-[#2c3138] rounded-xl w-full max-w-md shadow-lg text-white">
@@ -122,16 +121,16 @@ export default function LoginForm() {
           disabled={loading}
           // --- CLASES DE TAILWIND MODIFICADAS ---
           className="
-            bg-transparent                 
-            border border-blue-600         
-            text-blue-600                  
-            font-bold p-3 rounded-md       
-            hover:bg-blue-600              
-            hover:text-white               
-            disabled:opacity-50            
-            mt-4                           
+            bg-transparent                   
+            border border-blue-600          
+            text-blue-600                   
+            font-bold p-3 rounded-md        
+            hover:bg-blue-600               
+            hover:text-white                
+            disabled:opacity-50             
+            mt-4                            
             transition-colors
-            text-center              
+            text-center                     
           "
         >
           {loading ? 'Entrando...' : 'Entrar'}

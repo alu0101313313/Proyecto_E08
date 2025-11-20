@@ -9,13 +9,21 @@ import { setRouter } from './app/routers/setRouter';
 import { cardRouter } from './app/routers/cardRouter';
 
 // Cargar variables de entorno
-dotenv.config();
 
 // Conectar a la base de datos
+import type { ErrorRequestHandler } from 'express';
+
+
+
+// variables de entorno
+dotenv.config();
+
+// base de datos
 connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
 
 // --- Middlewares Esenciales ---
 // 1. Para parsear JSON del body
@@ -37,6 +45,7 @@ app.use('/api', setRouter);
 app.use('/api', cardRouter);
 
 
+
 app.get('/', (req, res) => {
   res.send('API del servidor de Pokémon TCG funcionando');
 });
@@ -51,3 +60,19 @@ app.listen(PORT, () => {
 // app.all('/{*splat}', (_, res) => {
 //   res.status(501).send();
 // });
+
+// manejador de errores 
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode);
+  res.json({
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
+};
+
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
