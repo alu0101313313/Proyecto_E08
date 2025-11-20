@@ -44,7 +44,7 @@ export default function AppHeader() {
             Explorar usuarios
           </Link>
           <Link href="/trades" className="text-sm font-medium text-gray-400 hover:text-white">
-            Intercambios
+            Intercambio
           </Link>
         </nav>
       </div>
