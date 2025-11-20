@@ -83,9 +83,11 @@ export default function AppHeader() {
         </div>
         
         {/* Icono de usuario /perfil (futura impementacion) */}
-        <button className="text-gray-400 hover:text-white">
-          <UserIcon /> 
-        </button>
+        <Link href="/profile">
+          <button className="text-gray-400 hover:text-white hover:bg-gray-700 p-2 rounded-ful transition-all">
+            <UserIcon />
+          </button>
+        </Link>
       </div>
       
     </header>
