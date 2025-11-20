@@ -6,6 +6,7 @@ import authRoutes from './app/auth/authRoutes'; // Importamos las rutas de auth
 // Importa aquí tus otras rutas (usuarios, cartas, etc.)
 import { serieRouter } from './app/routers/serieRouter';
 import { setRouter } from './app/routers/setRouter';
+import { cardRouter } from './app/routers/cardRouter';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -31,8 +32,9 @@ app.use('/api/auth', authRoutes);
 // Aquí irán tus otras rutas
 // app.use('/api/users', userRoutes);
 // app.use('/api/cards', cardRoutes);
-app.use('/api/series', serieRouter);
-app.use('/api/sets', setRouter);
+app.use('/api', serieRouter);
+app.use('/api', setRouter);
+app.use('/api', cardRouter);
 
 
 app.get('/', (req, res) => {

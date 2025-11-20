@@ -11,66 +11,71 @@ import { EnergyCard } from "../models/cards/energyCardModel.js";
 
 export const cardRouter = express.Router();
 
-// CRUD
-
 cardRouter.post("/cards", async (req, res) => {
 
-  const { id, category } = req.body;
+  const id_ = req.body.id;
+  const category = req.body.category;
+  //console.log('Received ID:', id_, 'Category:', category);
 
-  if (!id || !category) {
+  if (!id_ || !category) {
     return res.status(400).json({ message: "ID and category are required" });
   }
 
   try {
     if (category === TypeCard.POKEMON) {
 
-      const existingPokemonCard = await PokemonCard.findOne({ id });
+      const existingPokemonCard = await PokemonCard.findOne({ id_ });
       if (existingPokemonCard) {
         return res.status(200).json({ message: "Pokemon Card with this ID already exists", existingPokemonCard });
       }
 
-      const apiResponse = await tcgdex.card.get(id);
+      const apiResponse = await tcgdex.card.get(id_);
       const cardDict = dataclassToDict(apiResponse);
       const cardJSON = JSON.stringify(cardDict, null, 2);
       const cardData = JSON.parse(cardJSON) as IPokemonCard;
 
-      await cardData.save();
-      res.status(201).json({ message: "Pokemon Card created successfully", cardData });
+      // Crear modelo antes de guardar
+      const newPokemon = new PokemonCard(cardData as any);
+      await newPokemon.save();
+      res.status(201).json({ message: "Pokemon Card created successfully", newPokemon });
 
     } else if (category === TypeCard.TRAINER) {
 
-      const existingTrainerCard = await TrainerCard.findOne({ id });
+      const existingTrainerCard = await TrainerCard.findOne({ id_ });
       if (existingTrainerCard) {
         return res.status(200).json({ message: "Trainer Card with this ID already exists", existingTrainerCard });
       }
       
-      const apiResponse = await tcgdex.card.get(id);
+      const apiResponse = await tcgdex.card.get(id_);
       const cardDict = dataclassToDict(apiResponse);
       const cardJSON = JSON.stringify(cardDict, null, 2);
       const cardData = JSON.parse(cardJSON) as ITrainerCard;
 
-      await cardData.save();
-      res.status(201).json({ message: "Trainer Card created successfully", cardData });
+      const newTrainer = new TrainerCard(cardData as any);
+      await newTrainer.save();
+      res.status(201).json({ message: "Trainer Card created successfully", newTrainer });
 
     } else if (category === TypeCard.ENERGY) {
 
-      const existingEnergyCard = await EnergyCard.findOne({ id });
+      const existingEnergyCard = await EnergyCard.findOne({ id_ });
       if (existingEnergyCard) {
         return res.status(200).json({ message: "Energy Card with this ID already exists", existingEnergyCard });
       }
       
-      const apiResponse = await tcgdex.card.get(id);
+      const apiResponse = await tcgdex.card.get(id_);
       const cardDict = dataclassToDict(apiResponse);
       const cardJSON = JSON.stringify(cardDict, null, 2);
       const cardData = JSON.parse(cardJSON) as IEnergyCard;
       
-      await cardData.save();
-      res.status(201).json({ message: "Energy Card created successfully", cardData });
+      const newEnergy = new EnergyCard(cardData as any);
+      await newEnergy.save();
+      res.status(201).json({ message: "Energy Card created successfully", newEnergy });
 
     } else {
       return res.status(400).json({ message: "Invalid category" });
     }
   } catch (error: any) {
+    console.error('Error in POST /cards:', error);
     if (error.code === 11000) {
       return res.status(409).json({ message: "Card with this ID already exists" });
     }
@@ -79,30 +84,37 @@ cardRouter.post("/cards", async (req, res) => {
 }); 
 
 cardRouter.get("/cards", async (req, res) => {
-  // const { id, category } = req.params;
 
-  // try {
-  //   if (category === TypeCard.POKEMON) {
-  //     const cards = await PokemonCard.find();
-  //     return res.status(200).json(cards);
-  //   } else if (category === TypeCard.TRAINER) {
-  //     const cards = await TrainerCard.find();
-  //     return res.status(200).json(cards);
-  //   } else if (category === TypeCard.ENERGY) {
-  //     const cards = await EnergyCard.find();
-  //     return res.status(200).json(cards);
-  //   } else {
-  //     return res.status(400).json({ message: "Invalid category" });
-  //   }
-  // } catch (error) {
-  //   res.status(500).json({ message: "Error retrieving card", error });
-  // }
+  if (!req.query.id || !req.query.category) {
+    return res.status(400).json({ message: "ID and category are required" });
+  }
+  
+  const id = req.query.id.toString();
+  const category = req.query.category.toString();
+
+  try {
+    if (category === TypeCard.POKEMON) {
+      const cards = await PokemonCard.find({ id });
+      return res.status(200).json(cards);
+    } else if (category === TypeCard.TRAINER) {
+      const cards = await TrainerCard.find({ id });
+      return res.status(200).json(cards);
+    } else if (category === TypeCard.ENERGY) {
+      const cards = await EnergyCard.find({ id });
+      return res.status(200).json(cards);
+    } else {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving card", error });
+  }
 });
 
 // cardRouter.patch() <- no se si va a hacer falta
 
-cardRouter.delete("/cards/:category/:id", async (req, res) => {
-  const { id, category } = req.params;
+cardRouter.delete("/cards", async (req, res) => {
+  const id = req.body.id;
+  const category = req.body.category;
 
   try {
     if (category === TypeCard.POKEMON) {

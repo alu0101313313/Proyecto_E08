@@ -2,20 +2,18 @@ import { Schema, model } from 'mongoose';
 import type { ITrainerCard } from '../../interface/cards/ITrainerCard.js';
 
 const trainerCardSchema = new Schema<ITrainerCard>({
-  commonCardProperties: {
-    id_card: { type: String, required: true },
-    localID_card: { type: String, required: true },
-    name: { type: String, required: true },
-    category: { type: String, required: true },
-    set: { type: Object, required: true },
-    variants: { type: Object, required: true },
-    updated: { type: String, required: true },
-    condition: { type: String, required: true },
-    isTradable: { type: Boolean, required: true },
-  },
   category: { type: String, required: true },
-  trainerType: { type: String, required: true },
-  effect: { type: String, required: true },
+  id: { type: String, required: true },
+  idSet: { type: String },
+  idNumber: { type: String },
+  name: { type: String },
+  setName: { type: Object },
+  variants: { type: Object },
+  updated: { type: String },
+  condition: { type: String },
+  isTradable: { type: Boolean },
+  trainerType: { type: String, },
+  effect: { type: String },
 })
 
 export const TrainerCard = model<ITrainerCard>('TrainerCard', trainerCardSchema);
