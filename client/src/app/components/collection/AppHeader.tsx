@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 // Iconos (idealmente los reemplazarías por iconos reales de 'react-icons')
 const BellIcon = () => <span>🔔</span>;
@@ -11,6 +12,7 @@ const UserIcon = () => <span>👤</span>; // esto se reemplazará por un icono r
 export default function AppHeader() {
  {/* estado para la barra de búsqueda (simplificada por ahora)*/} 
   const [SearchTerm, setSearchTerm] = useState('');
+  const pathname = usePathname();
 
   {/* funcion para manejar tecla enter en la barra de búsqueda */}
   const handleSearch=(event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -20,6 +22,9 @@ export default function AppHeader() {
       alert(`Buscar: ${SearchTerm}`); // alerta temporal para mostrar el término de búsqueda
     }
   };
+  const isActive = (path: string) => pathname === path;
+  const linkClasses = "text-sm font-medium hover:text-white transition-colors";
+  const activeLinkClasses = "text-white underline underline-offset-4";
   return (
     <header className="flex items-center justify-between w-full p-4 bg-gray-800 border-b border-gray-700">
       
@@ -34,16 +39,24 @@ export default function AppHeader() {
         {/* Enlaces de Navegación */}
         
         <nav className="flex gap-4">
-          <Link href="/collection" className="text-sm font-medium text-white">
+          <Link 
+            href="/collection" 
+            className={`${linkClasses} ${isActive('/collection') ? activeLinkClasses : ''}`}>
             Mi colección
           </Link>
-          <Link href="/wishlist" className="text-sm font-medium text-gray-400 hover:text-white">
+          <Link 
+            href="/wishlist" 
+            className={`${linkClasses} ${isActive('/wishlist') ? activeLinkClasses : ''}`}>
             Lista de deseos
           </Link>
-          <Link href="/explore" className="text-sm font-medium text-gray-400 hover:text-white">
+          <Link 
+            href="/explore" 
+            className={`${linkClasses} ${isActive('/explore') ? activeLinkClasses : ''}`}>
             Explorar usuarios
           </Link>
-          <Link href="/trades" className="text-sm font-medium text-gray-400 hover:text-white">
+          <Link 
+            href="/trades" 
+            className={`${linkClasses} ${isActive('/trades') ? activeLinkClasses : ''}`}>
             Intercambio
           </Link>
         </nav>
