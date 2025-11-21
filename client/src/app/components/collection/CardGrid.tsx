@@ -40,6 +40,7 @@ export default function CardGrid({ cards }: CardGridProps) {
           <span className="text-sm text-gray-400">Ordenar por:</span>
           <button 
             // boton ordenar por precio
+            data-testid="sort-price-button"
             onClick={() => setSortBy('price')} 
             // al hacer click, cambia el estado de ordenación a 'price' y se llama a la función setSortBy
 
@@ -51,7 +52,9 @@ export default function CardGrid({ cards }: CardGridProps) {
             }`}>
             Precio
           </button>
-          <button 
+          <button
+            // boton ordenar por nombre
+            data-testid="sort-name-button"
             onClick={() => setSortBy('name')}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
               sortBy === 'name' 
@@ -67,7 +70,9 @@ export default function CardGrid({ cards }: CardGridProps) {
         { /* Mapeo de las cartas ordenadas */ }
         {sortedCards.length > 0 ? (
           sortedCards.map(card => (
-            <div key={card.id} className="relative group"> 
+            <div key={card.id}
+            data-testid={`card-${card.id}`}
+            className="relative group"> 
             {/* relative group por si queremos añadir efectos o elementos superpuestos */ }
               <Image
                 src={card.imageUrl}
