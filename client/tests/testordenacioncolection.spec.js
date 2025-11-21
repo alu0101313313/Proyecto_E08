@@ -7,7 +7,6 @@ const { Builder, By, Key, until } = require('selenium-webdriver')
 const assert = require('assert')
 
 describe('test ordenacion colection', function() {
-  this.timeout(60000) // Aumentamos el timeout global a 60s por si tu PC va lento
   let driver
   let vars
   
