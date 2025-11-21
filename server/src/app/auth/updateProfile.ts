@@ -29,7 +29,19 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
 
   // 2. Actualizar avatar si se envía
   if (profileImageUrl !== undefined) {
-    user.profileImageUrl = profileImageUrl;
+    if (profileImageUrl === "") {
+        // restaurar imagen por defecto si envían cadena vacía
+        user.profileImageUrl = 'https://images.pokemontcg.io/base1/4.png';
+    } else {
+        // url valida
+        try {
+            new URL(profileImageUrl); 
+            user.profileImageUrl = profileImageUrl;
+        } catch (_) {
+            res.status(400);
+            throw new Error('La URL de la imagen no es válida');
+        }
+    }
   }
 
   // 3. Guardar cambios

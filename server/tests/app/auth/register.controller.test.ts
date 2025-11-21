@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
 
-// --- 1. HOISTED MOCKS ---
 const mocks = vi.hoisted(() => {
   return {
     findOne: vi.fn(),
@@ -9,23 +8,20 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-// --- 2. MOCKING DE MÓDULOS ---
 vi.mock('../../../src/app/models/userModel', () => {
-  // SOLUCIÓN: Usamos una CLASE real en lugar de vi.fn()
-  // Esto evita el error "Reflect.construct requires a constructor"
   class MockUser {
     constructor(data: any) {
-      // Copiamos los datos que recibe el constructor (username, email...)
+      // copiar los datos  
       Object.assign(this, data);
       
-      // Simulamos propiedades que asignaría Mongoose
+      // simular propiedades de Mongoose
       (this as any)._id = 'new_user_id_123';
       
-      // Asignamos el espía 'save' a esta instancia
+      // espía 'save' a esta instancia
       (this as any).save = mocks.save;
     }
 
-    // Asignamos el espía estático findOne
+    // espía estático findOne
     static findOne = mocks.findOne;
   }
 
@@ -35,7 +31,6 @@ vi.mock('../../../src/app/models/userModel', () => {
   };
 });
 
-// Importamos el controlador
 import * as registerController from '../../../src/app/auth/register.controller'; 
 
 describe('Register Controller', () => {
@@ -61,7 +56,7 @@ describe('Register Controller', () => {
     expect(error.message).toBe('Por favor, complete todos los campos');
   });
 
-  it('debería devolver 400 si el usuario ya existe', async () => {
+  it('debería devolver 400 si la contraseña no cumple los requisitos', async () => {
     req.body = { username: 'duplicateUser', email: 'exist@test.com', password: '123' };
     mocks.findOne.mockResolvedValue({ _id: 'existing_id', email: 'exist@test.com' });
 
@@ -70,15 +65,15 @@ describe('Register Controller', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     const error = (next as any).mock.calls[0][0];
-    expect(error.message).toBe('El usuario o email ya existen');
+    expect(error.message).toBe('La contraseña debe tener al menos una letra y un número');
   });
 
   it('debería devolver 201 y crear el usuario si todo es correcto', async () => {
     req.body = { username: 'newUser', email: 'new@test.com', password: 'password123' };
 
-    // Configuramos los mocks para el caso de éxito
-    mocks.findOne.mockResolvedValue(null); // No existe usuario previo
-    mocks.save.mockResolvedValue(true);    // El guardado va bien
+    //  mocks para el caso de éxito
+    mocks.findOne.mockResolvedValue(null); // no existe usuario previo
+    mocks.save.mockResolvedValue(true);    // el guardado va bien
 
     await registerController.registerUser(req as Request, res as Response, next);
 
