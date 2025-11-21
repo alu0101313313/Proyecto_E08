@@ -86,6 +86,26 @@ cardRouter.post("/cards", async (req, res) => {
   }
 }); 
 
+/**
+ * @desc Obtener todas las cartas de la base de datos (Pokémon, Entrenador y Energía).
+ * @route GET /cards/all
+ * @access Public
+ */
+cardRouter.get("/cards/all", async (_, res) => {
+  try {
+    const pokemonCards = await PokemonCard.find({});
+    const trainerCards = await TrainerCard.find({});
+    const energyCards = await EnergyCard.find({});
+
+    return res.status(200).json({
+      pokemonCards,
+      trainerCards,
+      energyCards
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving all cards", error });
+  }
+});
 
 /**
  * @desc Obtener una carta de la base de datos según su ID y categoría (Pokémon, Entrenador o Energía).
@@ -119,7 +139,7 @@ cardRouter.get("/cards", async (req, res) => {
   }
 });
 
-// cardRouter.patch() <- no se si va a hacer falta
+
 
 
 /**
