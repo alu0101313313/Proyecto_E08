@@ -12,8 +12,7 @@ const UserIcon = () => <span>👤</span>; // esto se reemplazará por un icono r
 export default function AppHeader() {
  {/* estado para la barra de búsqueda (simplificada por ahora)*/} 
   const [SearchTerm, setSearchTerm] = useState('');
-  const pathname = usePathname();
-
+  
   {/* funcion para manejar tecla enter en la barra de búsqueda */}
   const handleSearch=(event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -22,9 +21,10 @@ export default function AppHeader() {
       alert(`Buscar: ${SearchTerm}`); // alerta temporal para mostrar el término de búsqueda
     }
   };
-  const isActive = (path: string) => pathname === path;
-  const linkClasses = "text-sm font-medium hover:text-white transition-colors";
-  const activeLinkClasses = "text-white underline underline-offset-4";
+  const pathname = usePathname(); // hook de Next.js para obtener la ruta actual
+  const isActive = (path: string) => pathname === path; // función para verificar si una ruta es la activa  
+  const linkClasses = "text-sm font-medium hover:text-white transition-colors"; // clases comunes para los enlaces
+  const activeLinkClasses = "text-white underline underline-offset-4"; // clases para el enlace activo
   return (
     <header className="flex items-center justify-between w-full p-4 bg-gray-800 border-b border-gray-700">
       
