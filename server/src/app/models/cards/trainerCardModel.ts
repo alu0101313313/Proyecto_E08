@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import type { ITrainerCard } from '../../interface/cards/ITrainerCard.js';
+import { TypeConditionCard } from '../../enums/enumConditionCard.js';
 
 /**
  * Mongoose schema and model for the TrainerCard entity.
@@ -24,12 +25,13 @@ const trainerCardSchema = new Schema<ITrainerCard>({
   idSet: { type: String },
   idNumber: { type: String },
   name: { type: String },
+  rarity: { type: String },
   setName: { type: Object },
   variants: { type: Object },
   updated: { type: String },
-  condition: { type: String },
+  condition: { type: String, default: TypeConditionCard.MINT },
   isTradable: { type: Boolean },
-  trainerType: { type: String, },
+  trainerType: { type: String },
   effect: { type: String },
 })
 

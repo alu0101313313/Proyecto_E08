@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import type { IEnergyCard } from "../../interface/cards/IEnergyCard.js";
+import { TypeConditionCard } from "../../enums/enumConditionCard.js";
 
 /**
  * Mongoose schema and model for the EnergyCard entity.
@@ -23,7 +24,8 @@ const energyCardSchema = new Schema<IEnergyCard>({
   setName: { type: Object },
   variants: { type: Object },
   updated: { type: String },
-  condition: { type: String },
+  rarity: { type: String },
+  condition: { type: String, default: TypeConditionCard.MINT },
   isTradable: { type: Boolean },
   category: { type: String, required: true },
   energyType: { type: String },
