@@ -10,7 +10,6 @@ import type { IEnergyCard } from "../interface/cards/IEnergyCard.js";
 import { EnergyCard } from "../models/cards/energyCardModel.js";
 import { API_URL } from "../utils/utils.js";
 import type { ICardBrief } from "../interface/cards/Icard.js";
-import { get } from "http";
 
 
 export const cardRouter = express.Router();
@@ -116,7 +115,7 @@ cardRouter.get("/cards/all", async (_, res) => {
  * @route GET /cards
  * @access Public
  */
-cardRouter.get("/cards", async (req, res) => {
+cardRouter.get("/cards/:id", async (req, res) => {
 
   if (!req.query.id || !req.query.category) {
     return res.status(400).json({ message: "ID and category are required" });
@@ -183,7 +182,30 @@ cardRouter.get("/cards/:name", async (req, res) => {
   }
 });
 
+cardRouter.get("/cards", async (req, res) => { 
+  //console.log("GET con flitros avanzados");
+  const { rarity, condition, category } = req.query;
 
+  try {
+    let filter: any = {};
+    let result: any[] = [];
+
+    if (rarity) filter.rarity = rarity;
+    if (condition) filter.condition = condition;
+    if (category) filter.category = category;
+    
+    const pokemonCards = await PokemonCard.find(filter);
+    result.push(...pokemonCards);
+    const trainerCards = await TrainerCard.find(filter);
+    result.push(...trainerCards);
+    const energyCards = await EnergyCard.find(filter);
+    result.push(...energyCards);
+
+    return res.status(200).json({ cards: result });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving cards with filters", error });
+  }
+ });
 
 
 /**
@@ -191,8 +213,8 @@ cardRouter.get("/cards/:name", async (req, res) => {
  * @route DELETE /cards
  * @access Public
  */
-cardRouter.delete("/cards", async (req, res) => {
-  const id = req.body.id;
+cardRouter.delete("/cards/:id", async (req, res) => {
+  const id = req.params.id;
   const category = req.body.category;
 
   try {
