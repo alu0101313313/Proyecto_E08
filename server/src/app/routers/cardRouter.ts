@@ -8,7 +8,10 @@ import type { ITrainerCard } from "../interface/cards/ITrainerCard.js";
 import { TrainerCard } from "../models/cards/trainerCardModel.js";
 import type { IEnergyCard } from "../interface/cards/IEnergyCard.js";
 import { EnergyCard } from "../models/cards/energyCardModel.js";
-import { Query } from "@tcgdex/sdk";
+import { API_URL } from "../utils/utils.js";
+import type { ICardBrief } from "../interface/cards/Icard.js";
+import { get } from "http";
+
 
 export const cardRouter = express.Router();
 
@@ -141,45 +144,35 @@ cardRouter.get("/cards", async (req, res) => {
 });
 
 cardRouter.get("/cards/:name", async (req, res) => {
-  const nameFilter = req.query.name?.toString() || "";
+  const name = req.params.name;
 
   try {
+    const pokemonCards = await PokemonCard.find({ name: new RegExp(name, 'i') });
+    const trainerCards = await TrainerCard.find({ name: new RegExp(name, 'i') });
+    const energyCards = await EnergyCard.find({ name: new RegExp(name, 'i') });
 
-    const pokemonCards = await PokemonCard.find({ name: { $regex: nameFilter, $options: 'i' } });
-    const trainerCards = await TrainerCard.find({ name: { $regex: nameFilter, $options: 'i' } });
-    const energyCards = await EnergyCard.find({ name: { $regex: nameFilter, $options: 'i' } });
-    
-    if(pokemonCards.length === 0 && trainerCards.length === 0 && energyCards.length === 0) {
+    if (pokemonCards.length === 0 && trainerCards.length === 0 && energyCards.length === 0) {
       
-      const searchAPI = await tcgdex.card.list(new Query().equal('name', nameFilter));
-      let resultCards: any[] = [];
-      console.log(searchAPI);
+      const getCardsAPI: ICardBrief[] = [];
+      const responseAPI = await fetch(`${API_URL}/cards?name=${name}`);
+      const dataAPI: any = await responseAPI.json();
 
-      if (searchAPI.length === 0) {
-        return res.status(404).json({ message: "No cards found with the given name" });
+      if (!dataAPI || dataAPI.length === 0) {
+        return res.status(404).json({ message: "No cards found with the given name in API server" });
       }
 
-      for (const card of searchAPI) {
-        const cardDict = dataclassToDict(card);
+      for (const cardData of dataAPI) {
+        const cardDict = dataclassToDict(cardData);
         const cardJSON = JSON.stringify(cardDict, null, 2);
-        const cardData = JSON.parse(cardJSON);
-
-        if (cardData.category === TypeCard.POKEMON) {
-          const newPokemon = new PokemonCard(cardData as any);
-          await newPokemon.save();
-          resultCards.push(newPokemon);
-        } else if (cardData.category === TypeCard.TRAINER) {
-          const newTrainer = new TrainerCard(cardData as any);
-          await newTrainer.save();
-          resultCards.push(newTrainer);
-        } else if (cardData.category === TypeCard.ENERGY) {
-          const newEnergy = new EnergyCard(cardData as any);
-          await newEnergy.save();
-          resultCards.push(newEnergy);
-        }
+        const cardParsed = JSON.parse(cardJSON) as ICardBrief;
+        getCardsAPI.push(cardParsed);
       }
-      return res.status(200).json({ resultCards });
+
+      return res.status(200).json({
+        apiCards: getCardsAPI
+      });
     }
+
     return res.status(200).json({
       pokemonCards,
       trainerCards,
@@ -189,6 +182,8 @@ cardRouter.get("/cards/:name", async (req, res) => {
     res.status(500).json({ message: "Error retrieving cards by name", error });
   }
 });
+
+
 
 
 /**
