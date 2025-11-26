@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
+
 // Iconos (idealmente los reemplazarías por iconos reales de 'react-icons')
 const BellIcon = () => <span>🔔</span>;
 const UserIcon = () => <span>👤</span>; // esto se reemplazará por un icono real
