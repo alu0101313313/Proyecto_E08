@@ -4,6 +4,7 @@ import type { IPokemonCard } from '../../interface/cards/IPokemonCard.js';
 const pokemonCardSchema = new Schema<IPokemonCard>({
   id: { type: String, required: true },
   name: { type: String,  },
+  image: { type: String,  },
   category: { type: String, required: true },
   setName: { type: Object,  },
   variants: { type: Object,  },

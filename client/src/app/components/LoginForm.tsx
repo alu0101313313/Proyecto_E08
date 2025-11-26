@@ -44,6 +44,7 @@ export default function LoginForm() {
       // --- 4. CAMBIO CLAVE: Usar el router en lugar de alert() ---
       // ¡Inicio de sesión exitoso!
       router.push('/mi-coleccion'); // Redirige al usuario a su colección
+      /// TODO: comprobar si funciona correctamente la redirección
     
     } catch (err) {
       setError('No se pudo conectar con el servidor API.');

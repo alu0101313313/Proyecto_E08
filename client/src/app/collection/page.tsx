@@ -1,59 +1,19 @@
-
+'use client';
+import  { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/router';
 
 import AppHeader from '@/app/components/collection/AppHeader'; // <-- 1. Importa el Header
 import FilterSidebar from '@/app/components/collection/FilterSidebar'; // <-- 2. Importa el Sidebar
 import CardGrid from '@/app/components/collection/CardGrid';
+import Loader from '@/app/components/ui/loader';
+import NotFoundError from '@/app/components/ui/notfoundError';
 
-const mockCardsData = [
-  { 
-    id: 1, 
-    name: "Charizard Base Set", 
-    value: 350.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/4.png" 
-  },
-  { 
-    id: 2, 
-    name: "Blastoise Base Set", 
-    value: 120.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/2.png" 
-  },
-  { 
-    id: 3, 
-    name: "Venusaur Base Set", 
-    value: 100.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/15.png" 
-  },
-  { 
-    id: 4, 
-    name: "Pikachu Base Set", 
-    value: 15.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/58.png" 
-  },
-  { 
-    id: 5, 
-    name: "Mewtwo Base Set", 
-    value: 25.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/10.png" 
-  },
-  { 
-    id: 6, 
-    name: "Gyarados Base Set", 
-    value: 20.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/6.png" 
-  },
-  { 
-    id: 7, 
-    name: "Alakazam Base Set", 
-    value: 18.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/1.png" 
-  },
-  { 
-    id: 8, 
-    name: "Zapdos Base Set", 
-    value: 22.00, 
-    imageUrl: "https://images.pokemontcg.io/base1/16.png" 
-  },
-];
+interface Card {
+  id: number;
+  name: string;
+  value: number;
+  imageUrl: string;
+}
 
 // funcion que calcula el valor total de las cartas
 const calculateTotalValue = (cards: { id: number; name: string; value: number }[]) => {
@@ -64,8 +24,60 @@ const calculateTotalValue = (cards: { id: number; name: string; value: number }[
 
 export default function CollectionPage() {
 
-  const totalValueCalculated = calculateTotalValue(mockCardsData);  
-  const totalCards = mockCardsData.length;
+  
+  const router = useRouter();
+  // estado vacio al principio
+  const [cards, setCards] = useState<Card[]>([]); // <-- 3. Estado para las cartas
+  const [loading, setLoading] = useState(true); // estado de carga
+  const [error, setError] = useState(""); // estado de error
+
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        // peticion al backend (puerto 5000)
+        const response = await fetch('http://localhost:5000/api/collection', {
+          method: 'GET',
+          credentials: 'include', // para enviar cookies
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 401) {
+          // si no está autenticado, redirige al login
+          router.push('/login');
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Error al obtener las cartas de la colección.');
+        }
+        
+        const data = await response.json();
+        // guardar cartas reales en el estado
+        setCards(data || []); // guarda las cartas en el estado
+        /// TODO: comprobar que el backend devuelve bien las cartas de la colección ( {cards: [...] } )
+
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCards(); // llama a la función para obtener las cartas
+  }, [router]);
+  // calcula el valor total de las cartas
+  const totalValueCalculated = calculateTotalValue(cards);
+  const totalCards = cards.length;
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <NotFoundError />;
+  }
   return (
     // CONTENEDOR DE PÁGINA COMPLETA
     // 'flex-col' apila los elementos verticalmente (Header encima de Contenido)
@@ -87,10 +99,19 @@ export default function CollectionPage() {
 
         {/* COLUMNA DERECHA (Cuadrícula de Cartas) */}
         <main className="w-3/4">
-          <CardGrid cards={mockCardsData} />
+          <CardGrid cards={cards} />
         </main>
       
       </div>
     </div>
   );
+// datos de ejemplo para las cartas (temporalmente mientras no haya backend
+  
 }
+
+
+
+
+
+  
+ 
