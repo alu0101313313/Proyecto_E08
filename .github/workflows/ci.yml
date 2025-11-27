@@ -1,0 +1,81 @@
+name: CI Pipeline (Vitest & Selenium)
+
+# 1. Activadores del Workflow
+on:
+  push:
+    branches:
+      - '**'        # Se ejecuta en push a cualquier rama
+  pull_request:
+    branches:
+      - dev         # Se ejecuta en PRs hacia la rama 'dev'
+  merge_group:      # Se ejecuta al mergear (si usas merge queue)
+
+jobs:
+  # --- JOB 1: TEST BACKEND (Vitest) ---
+  backend-tests:
+    name: Backend Tests (Vitest)
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./server # Todo se ejecuta en la carpeta 'server'
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Instalar dependencias (Server)
+        run: bun install
+
+      # Ejecutar Vitest
+      # Asegúrate de que el script "test" en server/package.json sea "vitest"
+      - name: Ejecutar Tests Unitarios
+        run: bun run test
+
+  # --- JOB 2: TEST FRONTEND (Selenium / E2E) ---
+  frontend-tests:
+    name: Frontend Tests (Selenium)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./client # Todo se ejecuta en la carpeta 'client'
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js (Necesario para Selenium/Browsers)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalar Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Instalar dependencias (Client)
+        run: bun install
+
+      # Configuración para Selenium (Chrome Headless)
+      # Esto asume que tus tests de Selenium están configurados para correr en modo headless
+      # y que tienes un script "test:e2e" o similar en tu package.json
+      - name: Ejecutar Tests E2E (Selenium)
+        uses: nanasess/setup-chromedriver@v2
+        
+      - name: Levantar Cliente y Correr Tests
+        # Aquí arrancamos el servidor de desarrollo en segundo plano (&) y luego corremos los tests
+        # Nota: Ajusta el comando de test según tu script real
+        run: |
+          bun run dev &
+          npx wait-on http://localhost:3000
+          bun run test:e2e
