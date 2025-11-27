@@ -8,6 +8,7 @@ import { serieRouter } from './app/routers/serieRouter';
 import { setRouter } from './app/routers/setRouter';
 import { cardRouter } from './app/routers/cardRouter';
 import { tradeRouter } from './app/routers/tradeRouter';
+//import { collectionRouter } from './app/routers/collectionRouter';
 // Conectar a la base de datos
 import type { ErrorRequestHandler } from 'express';
 
@@ -37,7 +38,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api', serieRouter);
 app.use('/api', setRouter);
 app.use('/api', cardRouter);
-app.use('/api', tradeRouter);
+//app.use('/api', collectionRouter);
+//app.use('/api', tradeRouter);
 
 app.get('/', (req, res) => {
   res.send('API del servidor de Pokémon TCG funcionando');
