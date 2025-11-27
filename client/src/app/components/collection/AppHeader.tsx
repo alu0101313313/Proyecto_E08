@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-
+import { useRouter, usePathname } from 'next/navigation';
 // Iconos (idealmente los reemplazarías por iconos reales de 'react-icons')
 const BellIcon = () => <span>🔔</span>;
 const UserIcon = () => <span className="text-2xl">👤</span>; // Fallback por si no hay foto
@@ -12,6 +11,17 @@ export default function AppHeader() {
   const [searchTerm, setSearchTerm] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null); // Estado para la foto
   const router = useRouter();
+  const pathname = usePathname();
+  const getLinkClass = (path: string) => {
+    const isActive = pathname === path;
+    const baseClasses = "text-sm font-medium hover:text-white transition-colors";
+    if (isActive) {
+      return `${baseClasses} text-white underline`;
+    } else {
+      return `${baseClasses} text-gray-300`;
+    }
+  };
+
 
   // --- CARGAR FOTO DEL USUARIO AL MONTAR ---
   useEffect(() => {
@@ -53,16 +63,16 @@ export default function AppHeader() {
         
         {/* Enlaces de Navegación */}
         <nav className="hidden md:flex gap-6">
-          <Link href="/collection" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+          <Link href="/collection" className={getLinkClass('/collection')}>
             Mi colección
           </Link>
-          <Link href="/wishlist" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+          <Link href="/wishlist" className={getLinkClass('/wishlist')}>
             Lista de deseos
           </Link>
-          <Link href="/explore" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+          <Link href="/explore" className={getLinkClass('/explore')}>
             Explorar usuarios
           </Link>
-          <Link href="/trades" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+          <Link href="/trades" className={getLinkClass('/trades')}>
             Intercambios
           </Link>
         </nav>
@@ -70,9 +80,7 @@ export default function AppHeader() {
 
       {/* Parte Derecha: Acciones y Perfil */}
       <div className="flex items-center gap-4">
-        <button className="hidden sm:block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-          + Añadir carta
-        </button>
+
         
         <button className="text-gray-400 hover:text-white transition-colors relative">
           <BellIcon />
@@ -106,8 +114,11 @@ export default function AppHeader() {
         
         {/* ICONO DE USUARIO / PERFIL */}
         <Link href="/profile" className="relative group">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-600 group-hover:border-blue-500 transition-all bg-gray-700 flex items-center justify-center">
-            {avatarUrl ? (
+        {/* Añadimos un borde condicional también al avatar si estamos en /profile */}
+          <div className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all bg-gray-700 flex items-center justify-center ${
+            pathname === '/profile' ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-gray-600 group-hover:border-blue-400'
+          }`}>            
+          {avatarUrl ? (
               <Image 
                 src={avatarUrl} 
                 alt="Avatar de usuario" 

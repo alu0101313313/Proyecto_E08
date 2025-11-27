@@ -2,7 +2,10 @@ import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
 import type { TypeTrainer } from "../../enums/enumTypeTrainer.js";
 import type { TypeCard } from "../../enums/typeCard.js";
 import type { TypeCardRarity } from "../../enums/typeCardRarity.js";
+import type { TypeCurrency } from "../../enums/typeCurrency.js";
 import type { ISetBrief } from "../ISets.js";
+import type { IUser } from "../IUsers.js";
+import type { Types } from "mongoose";
 import { Document } from "mongoose";
 
 /**
@@ -46,4 +49,25 @@ export interface ITrainerCard extends Document {
   category: TypeCard;
   trainerType: TypeTrainer;
   effect: string;
+  owner: Types.ObjectId | IUser; 
+  pricing: {
+    cardmarket: {
+      updated: string;
+      unit: TypeCurrency;
+      avgPrice: number;
+      avgHoloPrice: number;
+    }
+    tcgplayer: {
+      updated: string;
+      unit: TypeCurrency;
+      normal: {
+        marketPrice: number;
+        avgHoloPrice: number;
+      }
+      reverse: {
+        marketPrice: number;
+        avgHoloPrice: number;
+      }
+    }
+  }
 }

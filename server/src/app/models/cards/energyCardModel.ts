@@ -23,6 +23,7 @@ const energyCardSchema = new Schema<IEnergyCard>({
   name: { type: String },
   setName: { type: Object },
   variants: { type: Object },
+  image: { type: String },
   updated: { type: String },
   rarity: { type: String },
   condition: { type: String, default: TypeConditionCard.MINT },
@@ -31,6 +32,32 @@ const energyCardSchema = new Schema<IEnergyCard>({
   energyType: { type: String },
   energyTypePokemon: { type: [String]},
   effect: { type: String },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Referencia al modelo de Usuario
+    required: true,
+    index: true // Indexamos para búsquedas rápidas
+  },
+  pricing: {
+    cardmarket: {
+      updated: { type: String },
+      unit: { type: String },
+      avgPrice: { type: Number },
+      avgHoloPrice: { type: Number },
+    },
+    tcgplayer: {
+      updated: { type: String },
+      unit: { type: String },
+      normal: {
+        marketPrice: { type: Number },
+        avgHoloPrice: { type: Number },
+      },
+      reverse: {
+        marketPrice: { type: Number },
+        avgHoloPrice: { type: Number },
+      },
+    },
+  }
 })
 
 export const EnergyCard = model<IEnergyCard>('EnergyCard', energyCardSchema);

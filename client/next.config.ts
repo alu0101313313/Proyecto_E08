@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.pokemontcg.io', // Permitimos este dominio
+        hostname: 'images.pokemontcg.io', 
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.tcgdex.net', 
         port: '',
         pathname: '/**',
       },

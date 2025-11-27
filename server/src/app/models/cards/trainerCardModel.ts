@@ -25,6 +25,7 @@ const trainerCardSchema = new Schema<ITrainerCard>({
   idSet: { type: String },
   idNumber: { type: String },
   name: { type: String },
+  image: { type: String },
   rarity: { type: String },
   setName: { type: Object },
   variants: { type: Object },
@@ -33,6 +34,32 @@ const trainerCardSchema = new Schema<ITrainerCard>({
   isTradable: { type: Boolean },
   trainerType: { type: String },
   effect: { type: String },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Referencia al modelo de Usuario
+    required: true,
+    index: true // Indexamos para búsquedas rápidas
+  },
+  pricing: {
+    cardmarket: {
+      updated: { type: String },
+      unit: { type: String },
+      avgPrice: { type: Number },
+      avgHoloPrice: { type: Number },
+    },
+    tcgplayer: {
+      updated: { type: String },
+      unit: { type: String },
+      normal: {
+        marketPrice: { type: Number },
+        avgHoloPrice: { type: Number },
+      },
+      reverse: {
+        marketPrice: { type: Number },
+        avgHoloPrice: { type: Number },
+      },
+    },
+  }
 })
 
 export const TrainerCard = model<ITrainerCard>('TrainerCard', trainerCardSchema);
