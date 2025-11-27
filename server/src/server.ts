@@ -7,6 +7,7 @@ import authRoutes from './app/auth/authRoutes'; // Importamos las rutas de auth
 import { serieRouter } from './app/routers/serieRouter';
 import { setRouter } from './app/routers/setRouter';
 import { cardRouter } from './app/routers/cardRouter';
+import { tradeRouter } from './app/routers/tradeRouter';
 // Conectar a la base de datos
 import type { ErrorRequestHandler } from 'express';
 
@@ -33,21 +34,15 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
 // Aquí irán tus otras rutas
-// app.use('/api/users', userRoutes);
-// app.use('/api/cards', cardRoutes);
 app.use('/api', serieRouter);
 app.use('/api', setRouter);
 app.use('/api', cardRouter);
-
-
+app.use('/api', tradeRouter);
 
 app.get('/', (req, res) => {
   res.send('API del servidor de Pokémon TCG funcionando');
 });
 
-// app.all('/{*splat}', (_, res) => {
-//   res.status(501).send();
-// });
 
 // manejador de errores 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

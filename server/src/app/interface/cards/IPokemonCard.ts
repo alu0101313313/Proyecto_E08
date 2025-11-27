@@ -34,7 +34,7 @@ import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
  * @retreatCost Costo de retirada del Pokémon.
  * @pricing Objeto que contiene la información de precios en diferentes mercados.
  */
-export interface IPokemonCard extends Document{
+export interface IPokemonCard extends Document {
   id: string;
   idSet: string;
   idNumber: string;

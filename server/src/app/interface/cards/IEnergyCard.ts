@@ -25,8 +25,7 @@ import { Document } from "mongoose";
  * @energyTypePokemon Array de tipos de energía asociados a Pokémon.
  * @effect Descripción del efecto de la carta de energía.
  */
-export interface IEnergyCard extends Document{
-  //commonCardProperties: ICard;
+export interface IEnergyCard extends Document {
   id: string;
   idSet: string;
   idNumber: string;

@@ -10,14 +10,14 @@ import type { ISetBrief } from "./ISets.js";
  * @sets Array de objetos que representan los sets incluidos en la serie.
  * 
  */
-export interface ISeries extends Document{
+export interface ISeries extends Document {
   id: string;
   name: string;
   logo: string;
   sets: Array<ISetBrief>
 }
 
-export interface ISeriesBrief extends Document{
+export interface ISeriesBrief extends Document {
   id: string;
   name: string;
 }

@@ -24,7 +24,7 @@ import { Document } from "mongoose";
  * @trainerType Tipo de entrenador representado por la carta.
  * @effect Descripción del efecto de la carta de entrenador.
  */
-export interface ITrainerCard extends Document{
+export interface ITrainerCard extends Document {
   id: string;
   idSet: string;
   idNumber: string;

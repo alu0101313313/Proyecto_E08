@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import type { ITrade } from '../interface/ITrade';
+import { StatusTrade } from '../enums/enumStatusTrade';
 
 /**
  * Mongoose schema and model for the Trade entity.
@@ -14,13 +15,14 @@ import type { ITrade } from '../interface/ITrade';
  * - status: Current status of the trade.
  */
 const tradeSchema = new Schema<ITrade>({  
-  user1: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  user2: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  id: { type: String, required: true },
+  user1: { type: Schema.Types.ObjectId, ref: 'username', required: true },
+  user2: { type: Schema.Types.ObjectId, ref: 'username', required: true },
   user1Items: [{ type: Object, required: true }],
   user2Items: [{ type: Object, required: true }],
-  status: { type: String, required: true},
-  user1AproxValue: { type: Number, default: 0 },
-  user2AproxValue: { type: Number, default: 0 },
+  status: { type: String, default: StatusTrade.PENDING },
+  user1AproxValue: { type: Number, default: 0.00 },
+  user2AproxValue: { type: Number, default: 0.00 },
 }, { timestamps: true });
 
 export const Trade = model<ITrade>('Trade', tradeSchema);

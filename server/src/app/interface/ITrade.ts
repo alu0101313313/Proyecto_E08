@@ -18,6 +18,7 @@ import type { ICardBrief } from './cards/Icard';
  * @updatedAt Fecha de la última actualización del intercambio.
  */
 export interface ITrade extends Document {
+  id: string;
   user1: IUser;
   user2: IUser;
   user1Items: Array<ICardBrief>;
