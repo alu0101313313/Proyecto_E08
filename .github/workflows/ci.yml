@@ -56,7 +56,7 @@ jobs:
       - name: Instalar Node.js (Necesario para Selenium/Browsers)
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '24.x'  # Usa una versión compatible
 
       - name: Instalar Bun
         uses: oven-sh/setup-bun@v1
