@@ -6,7 +6,7 @@ import Image from 'next/image';
 export default function ProfileCard() {
   // 1. ESTADO: Datos del usuario (simulados por ahora)
   const [user, setUser] = useState({
-    username: 'AshKetchum123',
+    username: 'AshKetchum1234',
     email: 'ash@pokedex.com',
     avatarUrl: 'https://images.pokemontcg.io/base1/4.png', // Usamos una carta como avatar temporal
   });
