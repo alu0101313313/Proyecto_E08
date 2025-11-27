@@ -3,17 +3,18 @@
 import Image from 'next/image'; // librería para optimizar imágenes
 import { useState } from 'react'; // hook de React para manejar estado
 interface Card {
-  id: number;
-  name: string;
-  value: number;
-  imageUrl: string;
+  id: string | number;
+  name?: string;
+  value?: number;
+  imageUrl?: string;
 }
 
 interface CardGridProps {
   cards?: Card[]; // opcional, por si queremos pasar cartas como props en el futuro
+  onRemove?: (cardId: string | number) => Promise<void> | void;
 }
 
-export default function CardGrid({ cards }: CardGridProps) {
+export default function CardGrid({ cards, onRemove }: CardGridProps) {
   const [sortBy, setSortBy] = useState<'price' | 'name'>('price');
   // esto es para manejar el estado de la ordenación (por precio o por nombre) mediante un hook de React
   // funciona como una variable reactiva que actualiza el componente cuando cambia su valor
@@ -21,10 +22,10 @@ export default function CardGrid({ cards }: CardGridProps) {
   // función para ordenar las cartas según el criterio seleccionado
   const sortedCards = cards ? [...cards].sort((a, b) => {
     if (sortBy === 'price') {
-      return b.value - a.value; // ordenar por valor (precio)
+      return (b.value ?? 0) - (a.value ?? 0); // ordenar por valor (precio)
     } else {
 
-      return a.name.localeCompare(b.name); // ordenar por nombre
+      return (a.name ?? '').localeCompare(b.name ?? ''); // ordenar por nombre
       // localeCompare es un método de strings que compara dos cadenas según las reglas del idioma
     }
   }) : []; // cartas ordenadas según el criterio seleccionado. Devuelve un array vacío si no hay cartas.
@@ -69,14 +70,14 @@ export default function CardGrid({ cards }: CardGridProps) {
       <div className="grid grid-cols-6 gap-4">
         { /* Mapeo de las cartas ordenadas */ }
         {sortedCards.length > 0 ? (
-          sortedCards.map(card => (
-            <div key={card.id}
-            data-testid={`card-${card.id}`}
+          sortedCards.map((card, idx) => (
+            <div key={card.id ?? idx}
+            data-testid={`card-${card.id ?? idx}`}
             className="relative group"> 
             {/* relative group por si queremos añadir efectos o elementos superpuestos */ }
               <Image
-                src={card.imageUrl}
-                alt={card.name}
+                src={card.imageUrl ?? '/placeholder.png'}
+                alt={card.name ?? 'Carta'}
                 width={200}
                 height={280}
                 className="
@@ -90,9 +91,14 @@ export default function CardGrid({ cards }: CardGridProps) {
               <div className="mt-2 text-center">
                 <p className="text-sm font-light text-gray-400">{card.name}</p>
                 <p className="text-xs text-gray-200 font-mono">
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(card.value)}
+                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(card.value ?? 0)}
                 </p>
-                  
+                {onRemove ? (
+                  <button
+                    onClick={() => onRemove(card.id ?? idx)}
+                    className="mt-2 inline-block px-2 py-1 text-xs bg-red-600 rounded text-white hover:bg-red-500"
+                  >Eliminar</button>
+                ) : null}
               </div>
             </div>
           ))

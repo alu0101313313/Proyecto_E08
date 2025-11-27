@@ -9,15 +9,15 @@ import Loader from '@/app/components/ui/loader';
 import NotFoundError from '@/app/components/ui/notfoundError';
 
 interface Card {
-  id: number;
-  name: string;
+  id: string;
+  name?: string;
   value: number;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 // funcion que calcula el valor total de las cartas
-const calculateTotalValue = (cards: { id: number; name: string; value: number }[]) => {
-  const total = cards.reduce((sum, card) => sum + card.value, 0);
+const calculateTotalValue = (cards: { id: string | number; name?: string; value?: number }[]) => {
+  const total = cards.reduce((sum, card) => sum + (card.value ?? 0), 0);
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total);
   // devuelve el total formateado en euros
 }
@@ -34,8 +34,9 @@ export default function CollectionPage() {
   useEffect(() => {
     const fetchCards = async () => {
       try {
-        // peticion al backend (puerto 5000)
-        const response = await fetch('http://localhost:5000/api/collection', {
+        // peticion al backend (usar NEXT_PUBLIC_API_URL si está definido)
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
+        const response = await fetch(`${API_URL}/api/collection`, {
           method: 'GET',
           credentials: 'include', // para enviar cookies
           headers: {
@@ -54,8 +55,25 @@ export default function CollectionPage() {
         }
         
         const data = await response.json();
-        // guardar cartas reales en el estado
-        setCards(data || []); // guarda las cartas en el estado
+        // transformar la respuesta al formato que espera CardGrid
+        interface BackendCard {
+          _id?: string;
+          id?: string;
+          name?: string;
+          image?: string;
+          pricing?: {
+            cardmarket?: {
+              avgPrice?: number;
+            } | null;
+          } | null;
+        }
+        const mapped = (Array.isArray(data) ? data : []).map((c: BackendCard) => ({
+          id: c._id || c.id || String(Math.random()),
+          name: c.name,
+          imageUrl: c.image,
+          value: (c.pricing && c.pricing.cardmarket && c.pricing.cardmarket.avgPrice) ? c.pricing.cardmarket.avgPrice : 0,
+        }));
+        setCards(mapped);
         /// TODO: comprobar que el backend devuelve bien las cartas de la colección ( {cards: [...] } )
 
       } catch (err) {
@@ -70,6 +88,21 @@ export default function CollectionPage() {
   // calcula el valor total de las cartas
   const totalValueCalculated = calculateTotalValue(cards);
   const totalCards = cards.length;
+
+  // eliminar carta localmente y en backend
+  const handleRemove = async (cardId: string | number) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
+      const res = await fetch(`${API_URL}/api/collection/${String(cardId)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Error al eliminar carta');
+      setCards(prev => prev.filter(c => c.id !== cardId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (loading) {
     return <Loader />;
@@ -99,7 +132,7 @@ export default function CollectionPage() {
 
         {/* COLUMNA DERECHA (Cuadrícula de Cartas) */}
         <main className="w-3/4">
-          <CardGrid cards={cards} />
+          <CardGrid cards={cards} onRemove={handleRemove} />
         </main>
       
       </div>
