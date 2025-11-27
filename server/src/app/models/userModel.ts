@@ -54,10 +54,6 @@ const userSchema = new Schema({
     unique: true,
     trim: true,
     index: true, // indexado para búsquedas rápidas como en "Explorar usuarios"
-    validate: {
-      validator: (value: string) => /^[a-zA-Z0-9_]{3,30}$/.test(value),
-      message: 'El nombre de usuario debe tener entre 3 y 30 caracteres y solo puede contener letras, números y guiones bajos'
-    }
   },
   email: {
     type: String,
@@ -73,10 +69,6 @@ const userSchema = new Schema({
     type: String,
     required: [true, 'La contraseña es obligatoria'],
     minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
-    validate: {
-      validator: (value: string) => /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(value),
-      message: 'La contraseña debe contener al menos una letra y un número'
-    }
   },
   profileImageUrl: {
     type: String,

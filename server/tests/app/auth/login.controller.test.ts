@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
 
-// --- 1. HOISTED MOCKS ---
-// Definimos los espías antes que nada
+// los espías del mock
 const mocks = vi.hoisted(() => {
   return {
     findOne: vi.fn(),
@@ -10,9 +9,6 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-// --- 2. MOCKING DE MÓDULOS ---
-
-// IMPORTANTE: Usamos la ruta relativa exacta con extensión .ts
 vi.mock('../../../src/app/models/userModel', () => {
   return {
     __esModule: true,
@@ -22,16 +18,14 @@ vi.mock('../../../src/app/models/userModel', () => {
   };
 });
 
-// Mockeamos JWT
+// mockeo JWT
 vi.mock('jsonwebtoken', () => ({
   default: {
     sign: vi.fn(() => 'fake_token'),
   },
 }));
 
-// Importamos el controlador DESPUÉS de los mocks
 import * as loginController from '../../../src/app/auth/login.controller';
-// Opcional: Importar User para verificar si está mockeado (debug)
 import User from '../../../src/app/models/userModel';
 
 describe('Login Controller', () => {
