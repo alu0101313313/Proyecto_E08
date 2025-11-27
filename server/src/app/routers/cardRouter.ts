@@ -109,7 +109,7 @@ cardRouter.get("/cards", async (req, res) => {
     res.status(500).json({ message: "Error retrieving card", error });
   }
 });
-
+  
 // cardRouter.patch() <- no se si va a hacer falta
 
 cardRouter.delete("/cards", async (req, res) => {

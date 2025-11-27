@@ -1,7 +1,10 @@
 // archivo para la gestión de rutas relacionadas con colecciones de cartas
 import express from 'express';
+import mongoose from 'mongoose';
 import User from '../models/userModel';
 import { PokemonCard } from '../models/cards/pokemonCardModel';
+import { TrainerCard } from '../models/cards/trainerCardModel';
+import { EnergyCard } from '../models/cards/energyCardModel';
 
 import { protect } from '../middleware/authMiddleware';
 
@@ -10,30 +13,40 @@ export const collectionRouter = express.Router();
 // Ruta para obtener las cartas de la colección del usuario autenticado
 collectionRouter.get('/collection', protect, async (req, res) => {
   try {
-    // req.user es añadido por el middleware 'protect'
-    const userId = req.user?._id; // obtenemos el ID del usuario autenticado
+    const userId = req.user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'Usuario no autenticado' });
     }
-    const user = await User.findById(userId);
-    // buscamos el usuario en la base de datos para acceder a su colección
 
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-    
-    // obtenemos las cartas de la colección del usuario
-    const cardIds = user.collection || [];
-    const cards = await PokemonCard.find({ 'id_': { $in: cardIds } });
-    res.status(200).json(cards); // devolvemos las cartas como JSON
-    
-    // formatear y limpiar los datos antes de enviarlos al cliente
 
-    const formattedCards = cards.map(card => ({
-      
-    }));
+    // El campo del modelo es `cardCollection` (array de ObjectId)
+    const cardIds = user.cardCollection || [];
 
+    // Si no tiene cartas devolvemos array vacío inmediatamente
+    if (!cardIds || cardIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Normalizamos los ids a strings para poder comparar tanto _id como el campo `id`
+    const idStrings = cardIds.map((c: any) => c.toString());
+
+    // Separar los ids que son ObjectId válidos (para buscar por _id) y usarlos también para buscar por el campo `id`
+    const validObjectIds = idStrings.filter((s: string) => mongoose.Types.ObjectId.isValid(s)).map((s: string) => new mongoose.Types.ObjectId(s));
+
+    // Buscamos en las tres colecciones y combinamos resultados
+    const [pokemonCards, trainerCards, energyCards] = await Promise.all([
+      PokemonCard.find({ $or: [{ _id: { $in: validObjectIds } }, { id: { $in: idStrings } }] }),
+      TrainerCard.find({ $or: [{ _id: { $in: validObjectIds } }, { id: { $in: idStrings } }] }),
+      EnergyCard.find({ $or: [{ _id: { $in: validObjectIds } }, { id: { $in: idStrings } }] })
+    ]);
+
+    const cards = [...pokemonCards, ...trainerCards, ...energyCards];
+    return res.status(200).json(cards);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener la colección', error });
+    return res.status(500).json({ message: 'Error al obtener la colección', error });
   }
 });
