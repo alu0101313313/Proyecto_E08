@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:e2e": "mocha tests/testordenacioncolection.spec.js --timeout 30000"
+    "test:e2e": "npx mocha tests/testordenacioncolection.spec.js --timeout 30000"
   },
   "dependencies": {
     "next": "16.0.1",
