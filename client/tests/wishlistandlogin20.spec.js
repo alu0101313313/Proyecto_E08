@@ -11,7 +11,21 @@ describe('wishlist and login 2.0', function() {
   let vars
   
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build()
+    // 2. CONFIGURAR OPCIONES PARA CI
+    const options = new chrome.Options();
+    
+    // Estas flags son OBLIGATORIAS para que funcione en GitHub Actions / Docker
+    options.addArguments('--headless=new'); // Ejecutar sin interfaz gráfica
+    options.addArguments('--no-sandbox');   // Necesario para permisos en Linux
+    options.addArguments('--disable-dev-shm-usage'); // Evita errores de memoria compartida
+    options.addArguments('--window-size=1920,1080'); // Fija un tamaño virtual grande para que no se oculten elementos
+
+    // 3. CONSTRUIR EL DRIVER CON LAS OPCIONES
+    driver = await new Builder()
+      .forBrowser('chrome')
+      .setChromeOptions(options) // <--- APLICAR OPCIONES
+      .build();
+      
     vars = {}
   })
   

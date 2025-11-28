@@ -1,81 +1,76 @@
 name: CI Pipeline (Vitest & Selenium)
 
-# 1. Activadores del Workflow
 on:
   push:
-    branches:
-      - '**'        # Se ejecuta en push a cualquier rama
+    branches: ['**']
   pull_request:
-    branches:
-      - dev         # Se ejecuta en PRs hacia la rama 'dev'
-  merge_group:      # Se ejecuta al mergear (si usas merge queue)
+    branches: [dev]
 
 jobs:
-  # --- JOB 1: TEST BACKEND (Vitest) ---
+  # --- JOB 1: TEST BACKEND (Unitarios) ---
   backend-tests:
-    name: Backend Tests (Vitest)
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
     env:
       MONGODB_URI: ${{ secrets.MONGODB_URI }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-    runs-on: ubuntu-latest
-    
     defaults:
       run:
-        working-directory: ./server # Todo se ejecuta en la carpeta 'server'
+        working-directory: ./server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install
+      - run: bun run test
 
+  # --- JOB 2: TEST E2E (Frontend + Backend Integration) ---
+  e2e-tests:
+    name: E2E Selenium Tests
+    runs-on: ubuntu-latest
+    # Necesitamos las variables de entorno AQUÍ también para que el backend arranque
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      PORT: 5000
+    
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
 
       - name: Instalar Bun
         uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
 
-      - name: Instalar dependencias (Server)
-        run: bun install
-
-      # Ejecutar Vitest
-      # Asegúrate de que el script "test" en server/package.json sea "vitest"
-      - name: Ejecutar Tests Unitarios
-        run: bun run test
-
-  # --- JOB 2: TEST FRONTEND (Selenium / E2E) ---
-  frontend-tests:
-    name: Frontend Tests (Selenium)
-    runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: ./client # Todo se ejecuta en la carpeta 'client'
-
-    steps:
-      - name: Checkout del código
-        uses: actions/checkout@v4
-
-      - name: Instalar Node.js (Necesario para Selenium/Browsers)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24.x'  # Usa una versión compatible
-
-      - name: Instalar Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Instalar dependencias (Client)
-        run: bun install
-
-      # Configuración para Selenium (Chrome Headless)
-      # Esto asume que tus tests de Selenium están configurados para correr en modo headless
-      # y que tienes un script "test:e2e" o similar en tu package.json
-      - name: Ejecutar Tests E2E (Selenium)
-        uses: nanasess/setup-chromedriver@v2
-        
-      - name: Levantar Cliente y Correr Tests
-        # Aquí arrancamos el servidor de desarrollo en segundo plano (&) y luego corremos los tests
-        # Nota: Ajusta el comando de test según tu script real
+      # 1. PREPARAR Y ARRANCAR BACKEND (En segundo plano)
+      - name: Install & Start Backend
+        working-directory: ./server
         run: |
+          bun install
+          bun run dev & 
+          echo "Backend arrancando..."
+
+      # 2. PREPARAR FRONTEND
+      - name: Install Frontend
+        working-directory: ./client
+        run: bun install
+
+      # 3. INSTALAR DRIVERS SELENIUM
+      # Nota: Usamos npm aquí porque selenium-webdriver suele ir mejor con npx para binarios
+      - name: Instalar dependencias test E2E
+        working-directory: ./client
+        run: npm install selenium-webdriver chromedriver mocha wait-on
+
+      # 4. EJECUTAR TESTS
+      - name: Start Frontend & Run Tests
+        working-directory: ./client
+        run: |
+          # Arrancar frontend en background
           bun run dev &
-          npx wait-on http://localhost:3000
-          npx mocha client/tests/wishlistandlogin20.spec.js --timeout 60000
+          
+          # Esperar a que AMBOS puertos respondan (3000 Front, 5000 Back)
+          echo "Esperando a que los servidores estén listos..."
+          npx wait-on http://localhost:3000 http://localhost:5000 --timeout 60000
+          
+          echo "Servidores listos. Ejecutando Selenium..."
+          
+          # Ejecutar el test (Ruta corregida: ya estamos en ./client, así que es tests/...)
+          npx mocha tests/wishlistandlogin20.spec.js --timeout 60000
