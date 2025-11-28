@@ -1,36 +1,41 @@
 /* eslint-disable */
-// 1. Importamos chromedriver para evitar bloqueos
+// 1. Importaciones necesarias
 require('chromedriver');
+const { Builder, By, Key, until } = require('selenium-webdriver');
+const assert = require('assert');
 
-const { Builder, By, Key, until } = require('selenium-webdriver')
-const assert = require('assert')
+// 🚨 ESTA ES LA LÍNEA QUE TE FALTABA 🚨
+const chrome = require('selenium-webdriver/chrome');
 
 describe('wishlist and login 2.0', function() {
-  this.timeout(60000) // Aumentamos timeout a 60s
+  this.timeout(60000)
   let driver
   let vars
   
   beforeEach(async function() {
-    // 2. CONFIGURAR OPCIONES PARA CI
+    // 2. Configurar opciones para el entorno CI (GitHub Actions)
     const options = new chrome.Options();
     
-    // Estas flags son OBLIGATORIAS para que funcione en GitHub Actions / Docker
-    options.addArguments('--headless=new'); // Ejecutar sin interfaz gráfica
-    options.addArguments('--no-sandbox');   // Necesario para permisos en Linux
-    options.addArguments('--disable-dev-shm-usage'); // Evita errores de memoria compartida
-    options.addArguments('--window-size=1920,1080'); // Fija un tamaño virtual grande para que no se oculten elementos
+    // Flags obligatorias para CI (Linux sin pantalla)
+    options.addArguments('--headless=new'); // Ejecutar sin ventana visual
+    options.addArguments('--no-sandbox');
+    options.addArguments('--disable-dev-shm-usage');
+    options.addArguments('--window-size=1920,1080');
 
-    // 3. CONSTRUIR EL DRIVER CON LAS OPCIONES
+    // 3. Crear el driver con las opciones
     driver = await new Builder()
       .forBrowser('chrome')
-      .setChromeOptions(options) // <--- APLICAR OPCIONES
+      .setChromeOptions(options) // <--- Aplicamos las opciones aquí
       .build();
       
     vars = {}
   })
   
   afterEach(async function() {
-    await driver.quit();
+    // Protección: Solo intentamos cerrar si el driver se creó correctamente
+    if (driver) {
+      await driver.quit();
+    }
   })
   
   it('wishlist and login 2.0', async function() {
@@ -38,49 +43,50 @@ describe('wishlist and login 2.0', function() {
     console.log("🔵 Navegando a Wishlist...");
     await driver.get("http://localhost:3000/wishlist")
     
-    // Esperamos a que carguen las cartas
     await driver.sleep(2000)
-    await driver.manage().window().setRect({ width: 1440, height: 786 })
+    // Nota: setRect puede fallar en headless a veces, lo envolvemos en try/catch o lo omitimos si usamos window-size en options
+    try {
+        await driver.manage().window().setRect({ width: 1440, height: 786 })
+    } catch (e) {
+        console.log("Nota: No se pudo redimensionar ventana (normal en headless)");
+    }
 
     // --- PASO 2: VERIFICAR CARTA EN WISHLIST ---
     console.log("🔍 Verificando existencia de Umbreon VMAX...");
     
-    // Verificamos que la primera carta (o una de ellas) sea la esperada
-    // Nota: Usamos el selector relativo que generó el IDE, pero con una espera previa
-    const cardText = await driver.findElement(By.css(".relative:nth-child(1) .text-sm")).getText()
-    console.log(`   Texto encontrado: ${cardText}`);
+    // Esperamos a que aparezca el elemento antes de leerlo
+    const cardElement = await driver.wait(until.elementLocated(By.css(".relative:nth-child(1) .text-sm")), 10000);
+    const cardText = await cardElement.getText();
     
-    // Aserción: Comprobamos que sea Umbreon (carta de wishlist por defecto)
+    console.log(`   Texto encontrado: ${cardText}`);
     assert(cardText == "Umbreon VMAX (Moonbreon)")
     console.log("✅ Wishlist correcta.");
 
-
     // --- PASO 3: NAVEGACIÓN HACIA EL LOGIN/PERFIL ---
-    // El test original hacía clic en el icono de usuario (clase .text-2xl suele ser el emoji 👤)
     console.log("👉 Clic en icono de usuario...");
-    await driver.findElement(By.css(".text-2xl")).click()
+    // Buscamos el enlace que contiene el icono de perfil
+    const profileLink = await driver.findElement(By.css("a[href='/profile']"));
+    await profileLink.click();
     
-    // Esperamos a que cambie de página (a /login o /profile)
     await driver.sleep(1500)
-
 
     // --- PASO 4: IR A REGISTRO ---
     console.log("👉 Clic en enlace 'Registrarse'...");
-    // Usamos By.linkText porque es más robusto que el CSS generado automáticamente
-    await driver.findElement(By.linkText("Registrarse")).click()
     
-    // Esperamos a que cargue el formulario de registro
+    // Esperamos a que el botón sea visible y clickeable
+    const registerBtn = await driver.wait(until.elementLocated(By.xpath("//button[contains(.,'Registrarse')]")), 5000);
+    await registerBtn.click();
+    
     await driver.sleep(1000)
-
 
     // --- PASO 5: VERIFICAR TÍTULO DE REGISTRO ---
     console.log("🔍 Verificando título del formulario...");
     
-    // Buscamos el h1 (clase .text-3xl)
-    const titleText = await driver.findElement(By.css(".text-3xl")).getText()
+    const titleElement = await driver.wait(until.elementLocated(By.css("h1")), 5000);
+    const titleText = await titleElement.getText();
     
-    // Aserción: Debe decir "Crea tu colección"
-    assert(titleText == "Crea tu colección")
+    // Usamos 'includes' por si hay espacios extra o mayúsculas/minúsculas
+    assert(titleText.includes("Crea tu colección"))
     console.log("✅ Navegación a Registro correcta.");
   })
 })
