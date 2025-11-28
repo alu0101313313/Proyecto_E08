@@ -7,13 +7,23 @@ on:
     branches: [dev]
 
 jobs:
-  # --- JOB 1: TEST BACKEND (Unitarios) ---
+  # --- JOB 1: TEST BACKEND ---
   backend-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
+    
+    # 1. AÑADIMOS SERVICIO MONGO PARA LOS TESTS UNITARIOS
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+          
     env:
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # Forzamos a usar el mongo local del CI
+      MONGODB_URI: mongodb://localhost:27017/test_db 
+      JWT_SECRET: "secreto_temporal_para_ci"
+    
     defaults:
       run:
         working-directory: ./server
@@ -23,14 +33,22 @@ jobs:
       - run: bun install
       - run: bun run test
 
-  # --- JOB 2: TEST E2E (Frontend + Backend Integration) ---
+  # --- JOB 2: TEST E2E ---
   e2e-tests:
     name: E2E Selenium Tests
     runs-on: ubuntu-latest
-    # Necesitamos las variables de entorno AQUÍ también para que el backend arranque
+    
+    # 2. AÑADIMOS SERVICIO MONGO TAMBIÉN AQUÍ
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+
     env:
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # Usamos la base de datos temporal del CI
+      MONGODB_URI: mongodb://localhost:27017/e2e_db
+      JWT_SECRET: "secreto_temporal_para_ci"
       PORT: 5000
     
     steps:
@@ -40,37 +58,45 @@ jobs:
       - name: Instalar Bun
         uses: oven-sh/setup-bun@v1
 
-      # 1. PREPARAR Y ARRANCAR BACKEND (En segundo plano)
+      # 3. PREPARAR Y ARRANCAR BACKEND
       - name: Install & Start Backend
         working-directory: ./server
         run: |
           bun install
-          bun run dev & 
-          echo "Backend arrancando..."
+          # Usamos nohup para que no se muera el proceso si la terminal se cierra
+          nohup bun run dev > backend.log 2>&1 &
+          echo "Backend iniciado en segundo plano..."
 
-      # 2. PREPARAR FRONTEND
+      # 4. PREPARAR FRONTEND
       - name: Install Frontend
         working-directory: ./client
         run: bun install
 
-      # 3. INSTALAR DRIVERS SELENIUM
-      # Nota: Usamos npm aquí porque selenium-webdriver suele ir mejor con npx para binarios
-      - name: Instalar dependencias test E2E
+      # 5. INSTALAR DEPENDENCIAS DE TEST
+      - name: Instalar herramientas de test
         working-directory: ./client
         run: npm install selenium-webdriver chromedriver mocha wait-on
 
-      # 4. EJECUTAR TESTS
-      - name: Start Frontend & Run Tests
+      # 6. ESPERAR Y EJECUTAR
+      - name: Run E2E Tests
         working-directory: ./client
         run: |
-          # Arrancar frontend en background
-          bun run dev &
+          # Arrancar frontend
+          nohup bun run dev > frontend.log 2>&1 &
+          echo "Frontend iniciado..."
           
-          # Esperar a que AMBOS puertos respondan (3000 Front, 5000 Back)
-          echo "Esperando a que los servidores estén listos..."
-          npx wait-on http://localhost:3000 http://localhost:5000 --timeout 60000
+          # Esperar a que respondan (Aumentamos tiempo a 120s por si acaso)
+          echo "Esperando servidores..."
+          npx wait-on http://localhost:3000 http://localhost:5000 --timeout 120000
           
           echo "Servidores listos. Ejecutando Selenium..."
-          
-          # Ejecutar el test (Ruta corregida: ya estamos en ./client, así que es tests/...)
           npx mocha tests/wishlistandlogin20.spec.js --timeout 60000
+
+      # 7. (OPCIONAL) SI FALLA, MUESTRA LOS LOGS PARA SABER POR QUÉ
+      - name: Show Backend Logs (If Failure)
+        if: failure()
+        run: cat server/backend.log
+
+      - name: Show Frontend Logs (If Failure)
+        if: failure()
+        run: cat client/frontend.log
