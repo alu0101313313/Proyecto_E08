@@ -1,10 +1,9 @@
 /* eslint-disable */
-// 1. Importaciones necesarias
+// 1. Importamos chromedriver
 require('chromedriver');
 const { Builder, By, Key, until } = require('selenium-webdriver');
 const assert = require('assert');
-
-// 🚨 ESTA ES LA LÍNEA QUE TE FALTABA 🚨
+// Importar opciones de Chrome para modo headless
 const chrome = require('selenium-webdriver/chrome');
 
 describe('wishlist and login 2.0', function() {
@@ -13,26 +12,22 @@ describe('wishlist and login 2.0', function() {
   let vars
   
   beforeEach(async function() {
-    // 2. Configurar opciones para el entorno CI (GitHub Actions)
     const options = new chrome.Options();
-    
-    // Flags obligatorias para CI (Linux sin pantalla)
-    options.addArguments('--headless=new'); // Ejecutar sin ventana visual
+    // Flags vitales para CI
+    options.addArguments('--headless=new'); 
     options.addArguments('--no-sandbox');
     options.addArguments('--disable-dev-shm-usage');
     options.addArguments('--window-size=1920,1080');
 
-    // 3. Crear el driver con las opciones
     driver = await new Builder()
       .forBrowser('chrome')
-      .setChromeOptions(options) // <--- Aplicamos las opciones aquí
+      .setChromeOptions(options)
       .build();
       
     vars = {}
   })
   
   afterEach(async function() {
-    // Protección: Solo intentamos cerrar si el driver se creó correctamente
     if (driver) {
       await driver.quit();
     }
@@ -44,17 +39,14 @@ describe('wishlist and login 2.0', function() {
     await driver.get("http://localhost:3000/wishlist")
     
     await driver.sleep(2000)
-    // Nota: setRect puede fallar en headless a veces, lo envolvemos en try/catch o lo omitimos si usamos window-size en options
     try {
         await driver.manage().window().setRect({ width: 1440, height: 786 })
     } catch (e) {
         console.log("Nota: No se pudo redimensionar ventana (normal en headless)");
     }
 
-    // --- PASO 2: VERIFICAR CARTA EN WISHLIST ---
+    // --- PASO 2: VERIFICAR CARTA ---
     console.log("🔍 Verificando existencia de Umbreon VMAX...");
-    
-    // Esperamos a que aparezca el elemento antes de leerlo
     const cardElement = await driver.wait(until.elementLocated(By.css(".relative:nth-child(1) .text-sm")), 10000);
     const cardText = await cardElement.getText();
     
@@ -64,18 +56,19 @@ describe('wishlist and login 2.0', function() {
 
     // --- PASO 3: NAVEGACIÓN HACIA EL LOGIN/PERFIL ---
     console.log("👉 Clic en icono de usuario...");
-    // Buscamos el enlace que contiene el icono de perfil
+    // Buscamos por el enlace del perfil, es más seguro que clases CSS genéricas
     const profileLink = await driver.findElement(By.css("a[href='/profile']"));
     await profileLink.click();
     
     await driver.sleep(1500)
 
-    // --- PASO 4: IR A REGISTRO ---
+    // --- PASO 4: IR A REGISTRO (CORREGIDO) ---
     console.log("👉 Clic en enlace 'Registrarse'...");
     
-    // Esperamos a que el botón sea visible y clickeable
-    const registerBtn = await driver.wait(until.elementLocated(By.xpath("//button[contains(.,'Registrarse')]")), 5000);
-    await registerBtn.click();
+    // ⚠️ CAMBIO AQUÍ: Antes buscaba "//button", ahora busca "//a" (enlace)
+    // Buscamos cualquier enlace (a) que contenga el texto 'Registrarse'
+    const registerLink = await driver.wait(until.elementLocated(By.xpath("//a[contains(.,'Registrarse')]")), 5000);
+    await registerLink.click();
     
     await driver.sleep(1000)
 
@@ -85,7 +78,7 @@ describe('wishlist and login 2.0', function() {
     const titleElement = await driver.wait(until.elementLocated(By.css("h1")), 5000);
     const titleText = await titleElement.getText();
     
-    // Usamos 'includes' por si hay espacios extra o mayúsculas/minúsculas
+    // Verificamos que contenga "Crea tu colección"
     assert(titleText.includes("Crea tu colección"))
     console.log("✅ Navegación a Registro correcta.");
   })
