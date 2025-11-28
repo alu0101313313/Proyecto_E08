@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:e2e": "node tests/testordenacioncolection.spec.js"
+    "test:e2e": "vitest run tests/testordenacioncolection.spec.js"
   },
   "dependencies": {
     "next": "16.0.1",
