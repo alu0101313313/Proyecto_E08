@@ -29,6 +29,9 @@
     "validator": "^13.15.20"
   },
   "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "build": "bun tsc",
+    "start": "bun dist/server.js",
     "test": "vitest"
   }
 }

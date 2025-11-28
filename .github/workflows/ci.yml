@@ -71,21 +71,23 @@ jobs:
       # 3. Arrancar Servidores y Ejecutar Tests
       - name: Start Servers & Run Selenium
         run: |
-          # Arrancar Backend (en segundo plano)
+          # Arrancar Backend en puerto 5000
           cd server
-          nohup bun run dev > ../backend.log 2>&1 &
-          echo "Backend iniciando..."
+          # Forzamos el puerto 5000 explícitamente para el backend
+          PORT=5000 nohup bun run dev > ../backend.log 2>&1 &
+          echo "Backend iniciando en puerto 5000..."
           
-          # Arrancar Frontend en modo PRODUCCIÓN (mucho más rápido que dev)
+          # Arrancar Frontend en puerto 3000
           cd ../client
-          nohup bun run start > ../frontend.log 2>&1 &
-          echo "Frontend iniciando..."
+          # Forzamos el puerto 3000 para Next.js
+          PORT=3000 nohup bun run start > ../frontend.log 2>&1 &
+          echo "Frontend iniciando en puerto 3000..."
           
-          # Instalar herramientas de test (si no están en package.json)
+          # Instalar herramientas de test
           npm install selenium-webdriver chromedriver mocha wait-on
           
-          # Esperar a que los puertos 3000 (front) y 5000 (back) respondan
-          echo "Esperando a que los servidores estén listos..."
+          # Esperar a los puertos correctos
+          echo "Esperando a localhost:3000 y localhost:5000..."
           npx wait-on http://localhost:3000 http://localhost:5000 --timeout 120000
           
           echo "¡Sistemas listos! Ejecutando Selenium..."
