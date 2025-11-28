@@ -16,6 +16,19 @@ interface Card {
   category?: string;
 }
 
+// Tipo que describe la respuesta que viene del servidor/back-end
+interface ServerCard {
+  _id: string;
+  id?: string;
+  name?: string;
+  image?: string;
+  category?: string;
+  pricing?: {
+    cardmarket?: { avgPrice?: number } | null;
+    tcgplayer?: { normal?: { marketPrice?: number; avgHoloPrice?: number } } | null;
+  } | null;
+}
+
 const calculateTotalValue = (cards: Card[]) => {
   const total = cards.reduce((sum, card) => sum + (card.value || 0), 0);
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(total);
@@ -56,10 +69,10 @@ export default function CollectionPage() {
       const response = await fetch('/api/collection');
       if (response.ok) {
         const data = await response.json();
-        const mappedCards = (Array.isArray(data) ? data : []).map((c: any) => ({
-          id: c._id, 
+        const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
+          id: c._id,
           name: c.name,
-          imageUrl: fixImageUrl(c.image), // <--- USAMOS LA FUNCIÓN AQUÍ
+          imageUrl: fixImageUrl(c.image),
           category: c.category,
           value: c.pricing?.cardmarket?.avgPrice 
               || c.pricing?.tcgplayer?.normal?.marketPrice 
@@ -92,10 +105,10 @@ export default function CollectionPage() {
         
         const data = await response.json();
         
-        const mappedCards = (Array.isArray(data) ? data : []).map((c: any) => ({
-          id: c._id, 
+        const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
+          id: c._id,
           name: c.name,
-          imageUrl: fixImageUrl(c.image), 
+          imageUrl: fixImageUrl(c.image),
           category: c.category,
           value: c.pricing?.cardmarket?.avgPrice 
               || c.pricing?.tcgplayer?.normal?.marketPrice 
@@ -105,8 +118,9 @@ export default function CollectionPage() {
 
         setCards(mappedCards);
 
-      } catch (err: any) {
-        setError(err.message || "Error inesperado");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message || "Error inesperado");
       } finally {
         setLoading(false);
       }
