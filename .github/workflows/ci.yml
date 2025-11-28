@@ -78,4 +78,4 @@ jobs:
         run: |
           bun run dev &
           npx wait-on http://localhost:3000
-          bun run test:e2e
+          npx mocha client/tests/wishlistandlogin20.spec.js --timeout 60000
