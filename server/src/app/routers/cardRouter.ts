@@ -14,6 +14,15 @@ import type { ICardBrief } from "../interface/cards/Icard.js";
 import { protect } from "../middleware/authMiddleware";
 
 export const cardRouter = express.Router();
+const cleanDamageValue = (damage: any): number => {
+  if (typeof damage === 'number') return damage;
+  if (typeof damage !== 'string') return 0;
+    
+  // esto convierte "80x" -> "80", "—" -> "", "50+" -> "50"
+  const cleaned = damage.replace(/[^0-9]/g, '');
+    
+  return parseInt(cleaned, 10) || 0;
+};
 
 /**
  * @desc Crear una nueva carta en la base de datos y asignarla al usuario logueado.
@@ -52,13 +61,24 @@ cardRouter.post("/cards", protect, async (req, res) => {
         // Pero TCGdex suele usar esta estructura.
         imageUrl = `https://assets.tcgdex.net/en/${cardDict.set.id}/${cardDict.localId}`;
     }
+
+    // --- CORRECCIÓN DE ATAQUES ---
+    let cleanedAttacks = [];
+    if (Array.isArray(cardDict.attacks)) {
+      cleanedAttacks = cardDict.attacks.map((attack: any) => ({
+        ...attack,
+        // APLICAMOS LA LIMPIEZA AQUÍ
+        damage: cleanDamageValue(attack.damage) 
+      }));
+    }
     
     // 3. Preparamos los datos base añadiendo el OWNER y el estado de intercambio
     const cardDataRaw = {
       ...cardDict,
       image: imageUrl,
-      owner: req.user._id, // <--- LA CLAVE: Asignamos al usuario
-      isTradable: isForTrade 
+      owner: req.user._id, 
+      isTradable: isForTrade,
+      attacks: cleanedAttacks // usamos los ataques limpiados por si acaso
     };
 
     // Normalizamos la categoría: preferimos la que envía el cliente, y si no

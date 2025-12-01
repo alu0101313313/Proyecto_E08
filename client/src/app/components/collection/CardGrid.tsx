@@ -1,7 +1,9 @@
 'use client';
-// Componente de la cuadrícula de cartas (vacío por ahora)
-import Image from 'next/image'; // librería para optimizar imágenes
-import { useState } from 'react'; // hook de React para manejar estado
+import Image from 'next/image';
+import { useState } from 'react';
+import NotFoundError from '../ui/notfoundError';
+import Loader from '../ui/loader';
+
 interface Card {
   id: string | number;
   name?: string;
@@ -10,100 +12,97 @@ interface Card {
 }
 
 interface CardGridProps {
-  cards?: Card[]; // opcional, por si queremos pasar cartas como props en el futuro
+  cards?: Card[];
   onRemove?: (cardId: string | number) => Promise<void> | void;
+  onCardClick?: (cardId: string | number) => void;
 }
 
-export default function CardGrid({ cards, onRemove }: CardGridProps) {
+export default function CardGrid({ cards, onRemove, onCardClick }: CardGridProps) {
   const [sortBy, setSortBy] = useState<'price' | 'name'>('price');
-  // esto es para manejar el estado de la ordenación (por precio o por nombre) mediante un hook de React
-  // funciona como una variable reactiva que actualiza el componente cuando cambia su valor
 
-  // función para ordenar las cartas según el criterio seleccionado
   const sortedCards = cards ? [...cards].sort((a, b) => {
     if (sortBy === 'price') {
-      return (b.value ?? 0) - (a.value ?? 0); // ordenar por valor (precio)
+      return (b.value ?? 0) - (a.value ?? 0);
     } else {
-
-      return (a.name ?? '').localeCompare(b.name ?? ''); // ordenar por nombre
-      // localeCompare es un método de strings que compara dos cadenas según las reglas del idioma
+      return (a.name ?? '').localeCompare(b.name ?? '');
     }
-  }) : []; // cartas ordenadas según el criterio seleccionado. Devuelve un array vacío si no hay cartas.
+  }) : [];
+
   return (
-    // Contenedor de la cuadrícula de cartas
     <div className="bg-gray-800 p-4 rounded-lg text-white">
-      { /* Cabecera (titulo y ordenacion) */ }
+      {/* Cabecera... (sin cambios) */}
       <div className="text-xl justify-between items-center mb-6 flex">
         <h2 className="text-xl font-semibold">Mi Colección</h2>
-
-        {/* Selector de ordenación (dropdown) */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-400">Ordenar por:</span>
           <button 
-            // boton ordenar por precio
             data-testid="sort-price-button"
             onClick={() => setSortBy('price')} 
-            // al hacer click, cambia el estado de ordenación a 'price' y se llama a la función setSortBy
-
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              sortBy === 'price' 
-              // en caso de estar seleccionado, cambia el color del boton. Si no, otro color
-              ? 'bg-blue-600 text-white hover:bg-blue-500' 
-              : 'bg-gray-700 text-white hover:bg-gray-600'
+              sortBy === 'price' ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}>
             Precio
           </button>
           <button
-            // boton ordenar por nombre
             data-testid="sort-name-button"
             onClick={() => setSortBy('name')}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              sortBy === 'name' 
-              ? 'bg-blue-600 text-white hover:bg-blue-500'  
-              : 'bg-gray-700 text-white hover:bg-gray-600'
+              sortBy === 'name' ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}>
             Nombre
           </button>
         </div>
       </div>
-      { /* Cuadrícula de cartas */ }
-      <div className="grid grid-cols-6 gap-4">
-        { /* Mapeo de las cartas ordenadas */ }
+
+      {/* Cuadrícula de cartas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"> {/* Ajustado gap a 6 para más espacio vertical */}
         {sortedCards.length > 0 ? (
           sortedCards.map((card, idx) => (
-            <div key={card.id ?? idx}
-            data-testid={`card-${card.id ?? idx}`}
-            className="relative group"> 
-            {/* relative group por si queremos añadir efectos o elementos superpuestos */ }
-              <Image
-                src={card.imageUrl ?? '/placeholder.png'}
-                alt={card.name ?? 'Carta'}
-                width={200}
-                height={280}
-                className="
-                  rounded-lg
-                  w-full h-auto
-                  transition-transform duration-200
-                  hover:scale-105
-                  cursor-pointer
-                "
-              />
-              <div className="mt-2 text-center">
-                <p className="text-sm font-light text-gray-400">{card.name}</p>
-                <p className="text-xs text-gray-200 font-mono">
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(card.value ?? 0)}
-                </p>
-                {onRemove ? (
-                  <button
-                    onClick={() => onRemove(card.id ?? idx)}
-                    className="mt-2 inline-block px-2 py-1 text-xs bg-red-600 rounded text-white hover:bg-red-500"
-                  >Eliminar</button>
-                ) : null}
+            <div 
+              key={card.id ?? idx}
+              data-testid={`card-${card.id ?? idx}`}
+              className="flex flex-col items-center" // Usamos flex-col para apilar imagen y botón
+            >
+              
+              {/* --- 1. ZONA DE DETALLES (Abre el Modal) --- */}
+              {/* Al hacer clic AQUÍ, se abre el modal. El botón de eliminar está FUERA de este div. */}
+              <div 
+                className="group cursor-pointer flex flex-col items-center w-full"
+                onClick={() => onCardClick && onCardClick(String(card.id))}
+              >
+                <div className="relative">
+                  <Image
+                    src={card.imageUrl ?? '/placeholder.png'}
+                    alt={card.name ?? 'Carta'}
+                    width={200}
+                    height={280}
+                    className="rounded-lg w-full h-auto transition-transform duration-200 group-hover:scale-105 shadow-md"
+                  />
+                </div>
+                
+                <div className="mt-3 text-center">
+                  <p className="text-sm font-medium text-gray-300 truncate w-full px-1">{card.name}</p>
+                  <p className="text-xs text-blue-300 font-mono mt-1">
+                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(card.value ?? 0)}
+                  </p>
+                </div>
               </div>
+
+              {/* --- 2. ZONA DE ACCIONES (No abre el Modal) --- */}
+              {/* Este botón ahora es un hermano del div de arriba, no un hijo. */}
+              {onRemove && (
+                <button
+                  onClick={() => onRemove(card.id ?? idx)}
+                  className="mt-3 w-full bg-red-900/30 hover:bg-red-600 text-red-200 hover:text-white border border-red-800 py-1.5 px-3 rounded text-xs font-medium transition-colors"
+                >
+                  Eliminar
+                </button>
+              )}
+
             </div>
           ))
         ) : (
-          <p className="col-span-6 text-center text-gray-400">No hay cartas en tu colección.</p>
+          <p className="col-span-6 text-center text-gray-400 py-10">No hay cartas en tu colección.</p>
         )}
       </div>
     </div>  

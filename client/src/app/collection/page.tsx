@@ -1,12 +1,18 @@
 'use client';
 // si
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; 
+import { useRouter, useSearchParams } from 'next/navigation'; 
 
 import AppHeader from '@/app/components/collection/AppHeader';
 import FilterSidebar from '@/app/components/collection/FilterSidebar';
 import CardGrid from '@/app/components/collection/CardGrid';
-import AddCardModal from '@/app/components/addCardModal';
+import AddCardModal from '../components/modals/addCardModal';
+import CardDetailModal from '../components/modals/CardDetailModal';
+
+// importar ui de loading y error si existen
+
+import Loader from '../components/ui/loader';
+import NotFoundError from '../components/ui/notfoundError';
 
 interface Card {
   id: string;
@@ -36,11 +42,24 @@ const calculateTotalValue = (cards: Card[]) => {
 
 export default function CollectionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams(); // <-- Hook para leer la URL
+  const targetUserId = searchParams.get('userId'); // <-- Obtenemos el ID del usuario objetivo
   
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(""); 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Estado para el modal de añadir carta
+
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null); // Estado para la carta seleccionada
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false); // Estado para el modal de detalles
+
+  
+
+  const handleCardClick = (cardId: string | number) => {
+    setSelectedCardId(String(cardId)); 
+    setIsDetailModalOpen(true);
+  };
+
 
   // Función auxiliar para corregir URLs de TCGdex
   const fixImageUrl = (url?: string) => {
@@ -70,7 +89,7 @@ export default function CollectionPage() {
       if (response.ok) {
         const data = await response.json();
         const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
-          id: c._id,
+          id: c.id || c._id,
           name: c.name,
           imageUrl: fixImageUrl(c.image),
           category: c.category,
@@ -89,6 +108,7 @@ export default function CollectionPage() {
   useEffect(() => {
     const fetchCards = async () => {
       try {
+        const url = targetUserId ? `/api/collection?userId=${targetUserId}` : '/api/collection';
         const response = await fetch('/api/collection', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -106,7 +126,7 @@ export default function CollectionPage() {
         const data = await response.json();
         
         const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
-          id: c._id,
+          id: c.id || c._id,
           name: c.name,
           imageUrl: fixImageUrl(c.image),
           category: c.category,
@@ -127,7 +147,7 @@ export default function CollectionPage() {
     };
     
     fetchCards();
-  }, [router]);
+  }, [router, targetUserId]);
 
   const handleAddCard = async (cardApiId: string, category?: string) => {
     try {
@@ -181,11 +201,16 @@ export default function CollectionPage() {
       alert("No se pudo eliminar. Revisa la consola.");
     }
   };
+  // si esta cargando, usar Loader
+  if (loading) return <Loader />;
+
+  // si hay error, mostrar mensaje de error
+  if (error) return <NotFoundError />;
+
+  const totalValueCalculated = calculateTotalValue(cards);
 
   if (loading) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Cargando...</div>;
   if (error) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">{error}</div>;
-
-  const totalValueCalculated = calculateTotalValue(cards);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
@@ -216,7 +241,12 @@ export default function CollectionPage() {
           </div>
 
           {cards.length > 0 ? (
-            <CardGrid cards={cards} onRemove={handleRemove} />
+            <CardGrid 
+              cards={cards} 
+              onRemove={handleRemove}
+              onCardClick={handleCardClick}
+          
+            />
           ) : (
             <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
               <span className="text-4xl mb-4">📭</span>
@@ -236,6 +266,11 @@ export default function CollectionPage() {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         onAdd={handleAddCard} 
+      />
+      <CardDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        cardId={selectedCardId}
       />
 
     </div>

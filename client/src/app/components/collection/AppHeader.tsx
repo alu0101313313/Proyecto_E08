@@ -14,11 +14,11 @@ export default function AppHeader() {
   const pathname = usePathname();
   const getLinkClass = (path: string) => {
     const isActive = pathname === path;
-    const baseClasses = "text-sm font-medium hover:text-white transition-colors";
+    const baseClasses = "text-sm font-medium transition-all duration-200 pb-1 border-b-2";
     if (isActive) {
-      return `${baseClasses} text-white underline`;
+      return `${baseClasses} text-white border-blue-500`;
     } else {
-      return `${baseClasses} text-gray-300`;
+      return `${baseClasses} text-gray-300 border-transparent hover:text-white hover:border-gray-500`;
     }
   };
 

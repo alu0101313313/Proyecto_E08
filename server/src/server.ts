@@ -8,6 +8,8 @@ import { serieRouter } from './app/routers/serieRouter';
 import { setRouter } from './app/routers/setRouter';
 import { cardRouter } from './app/routers/cardRouter';
 import { collectionRouter } from './app/routers/collectionRouter';
+import { wishlistRouter } from './app/routers/wishlistRouter';
+import { userRouter } from './app/routers/userRouter';
 // Conectar a la base de datos
 import type { ErrorRequestHandler } from 'express';
 
@@ -40,6 +42,8 @@ app.use('/api', serieRouter);
 app.use('/api', setRouter);
 app.use('/api', cardRouter);
 app.use('/api', collectionRouter);
+app.use('/api', wishlistRouter);
+app.use('/api/', userRouter);
 
 
 
