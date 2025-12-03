@@ -25,8 +25,9 @@ import { Document } from "mongoose";
  * @isTradable Indica si la carta es intercambiable.
  * @category Categoría de la carta (debe ser de tipo energía).
  * @energyType Tipo de energía representada por la carta.
- * @energyTypePokemon Array de tipos de energía asociados a Pokémon.
  * @effect Descripción del efecto de la carta de energía.
+ * @owner Usuario que posee la carta.
+ * @pricing Objeto que contiene la información de precios en diferentes mercados.
  */
 export interface IEnergyCard extends Document {
   id: string;
@@ -49,7 +50,6 @@ export interface IEnergyCard extends Document {
   isTradable: boolean;
   category: TypeCard;
   energyType: TypeEnergy;
-  energyTypePokemon: TypeEnergy[];
   effect: string;
   owner: Types.ObjectId | IUser; 
   pricing: {

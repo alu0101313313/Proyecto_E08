@@ -1,28 +1,27 @@
+
+/**
+ * Enum que indica la rareza de la carta
+ * 
+ * @COMMON indica que la rareza de la carta es comun
+ * @UNCOMMON indica que la rareza de la carta es infrecuente
+ * @RARE indica que la rareza de la carta es rara
+ * @RARE_DOUBLE indica que la rareza de la carta es doble rara
+ * @RARE_ILUSTRATION indica que la rareza de la carta es ilustración rara
+ * @RARE_SPECIAL_ILUSTRATION indica que la rareza de la carta es ilustración especial rara
+ * @RARE_ULTRA indica que la rareza de la carta es ultra rara
+ * @RARE_HIPER indica que la rareza de la carta es hiper rara
+ * @REVERSE_HOLO indica que la rareza de la carta es reverse holo
+ * @PROMO indica que la rareza de la carta es promocional
+ */
 export enum TypeCardRarity {
   COMMON = 'Common',
   UNCOMMON = 'Uncommon',
   RARE = 'Rare',
-  // RARE_HOLO = 'Rare Holo',
-  // RARE_SHINY = 'Rare Shiny',
-  // SHINY_HOLO = 'Shiny Holo',
-  // RARE_ULTRA = 'Rare Ultra',
-  // RARE_SECRET = 'Rare Secret',
-  // RARE_HOLO_SHINY = 'Rare Holo Shiny',
-  // RARE_HOLO_EX = 'Rare Holo EX',
-  // RARE_HOLO_NIVX = 'Rare Holo Niv.X',
-  // RARE_PRIME = 'Rare Prime',
-  // RARE_LEGEND = 'Rare Legend',
-  // RARE_ACE = 'Rare Ace',
-  // RARE_GX = 'Rare GX',
-  // RARE_HOLO_V = 'Rare Holo V',
-  // RARE_HOLO_VMAX = 'Rare Holo VMAX',
-  // RARE_INCREDIBLE = 'Rare Incredible',
-  // RARE_HOLO_VASTRO = 'Rare Holo V-Astro',
-  // RARE_RADIANT = 'Rare Radiant',
-  // RARE_DOUBLE = 'Rare Double',
-  // RARE_ILUSTRATION = 'Rare Illustration',
-  // RARE_SPECIAL_ILUSTRATION = 'Rare Special Illustration',
-  // RARE_HIPER = 'Rare Hiper',
-  // RARE_AS_TACTIC = 'Rare As Tactic',
+  RARE_DOUBLE = 'Rare Double',
+  RARE_ILUSTRATION = 'Rare Illustration',
+  RARE_SPECIAL_ILUSTRATION = 'Rare Special Illustration',
+  RARE_ULTRA = 'Rare Ultra',
+  RARE_HIPER = 'Rare Hiper',
+  REVERSE_HOLO = 'Reverse Holo',
   PROMO = 'Promo',
 }

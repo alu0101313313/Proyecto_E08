@@ -35,6 +35,7 @@ import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
  * @resistances Array de objetos que representan las resistencias del Pokémon.
  * @retreatCost Costo de retirada del Pokémon.
  * @pricing Objeto que contiene la información de precios en diferentes mercados.
+ * @owner Usuario que posee la carta.
  */
 export interface IPokemonCard extends Document {
   id: string;

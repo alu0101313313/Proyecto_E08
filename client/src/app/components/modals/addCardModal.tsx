@@ -1,14 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-// 1. IMPORTAR LOS COMPONENTES DE UI
-import Loader from '../ui/loader';
-import NotFoundError from '../ui/notfoundError';
+
+// Define el Enum aquí para la UI
+const TypeConditionCard = {
+  MINT: "Mint", NEAR_MINT: "Near Mint", EXCELLENT: "Excellent", 
+  GOOD: "Good", LIGHT_PLAYED: "Light Played", PLAYED: "Played", POOR: "Poor"
+};
+const ConditionOptions = Object.values(TypeConditionCard);
 
 interface AddCardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (cardId: string, category?: string) => Promise<void>;
+  // onAdd ahora recibe category, condition y isTradable
+  onAdd: (cardId: string, category: string, condition: string, isTradable: boolean) => Promise<void>; 
 }
 
 interface SearchResult {
@@ -23,9 +28,12 @@ export default function AddCardModal({ isOpen, onClose, onAdd }: AddCardModalPro
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isAdding, setIsAdding] = useState<string | null>(null);
+  
+  // Estados para el formulario de la carta SELECCIONADA
+  const [selectedCard, setSelectedCard] = useState<SearchResult | null>(null);
+  const [condition, setCondition] = useState<string>(TypeConditionCard.MINT);
+  const [isTradable, setIsTradable] = useState(false);
 
-  // 2. AÑADIR EL ESTADO 'hasSearched'
-  const [hasSearched, setHasSearched] = useState(false);
 
   if (!isOpen) return null;
 
@@ -34,8 +42,9 @@ export default function AddCardModal({ isOpen, onClose, onAdd }: AddCardModalPro
     if (!searchTerm.trim()) return;
 
     setIsSearching(true);
-    setHasSearched(true); // 3. MARCAR QUE SE HA BUSCADO
-
+    setSelectedCard(null); // Limpiar selección anterior
+    setResults([]);
+    
     try {
       const response = await fetch(`https://api.tcgdex.net/v2/en/cards?name=${searchTerm}`);
       const data = await response.json();
@@ -52,101 +61,162 @@ export default function AddCardModal({ isOpen, onClose, onAdd }: AddCardModalPro
 
       setResults(mappedResults);
     } catch (error) {
-      console.error("Error buscando cartas:", error);
-      setResults([]);
+      console.error("Error buscando:", error);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handleAddClick = async (cardId: string, category?: string) => {
-    setIsAdding(cardId);
-    await onAdd(cardId, category);
-    setIsAdding(null);
+  const handleSelectCard = (card: SearchResult) => {
+    // Cuando el usuario selecciona una carta, la movemos a la vista de configuración
+    setSelectedCard(card);
+    setResults([]); // Limpiamos resultados
+    setSearchTerm(card.name);
   };
+  
+  const handleFinalAdd = async () => {
+    if (!selectedCard) return;
+
+    setIsAdding(selectedCard.id);
+    await onAdd(selectedCard.id, selectedCard.category || 'Pokemon', condition, isTradable);
+    setIsAdding(null);
+    setSelectedCard(null); // Limpiamos la vista tras añadir
+    setSearchTerm('');
+    setCondition(TypeConditionCard.MINT);
+    setIsTradable(false);
+  };
+
+  const handleBackToSearch = () => {
+    setSelectedCard(null);
+    setSearchTerm('');
+    // No limpiamos los resultados para que pueda volver a ellos si quiere
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-gray-700 overflow-hidden">
+      <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col border border-gray-700 overflow-hidden">
         
         {/* Cabecera */}
         <div className="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-900/50">
           <div>
-            <h2 className="text-2xl font-bold text-white">Añadir Nueva Carta</h2>
-            <p className="text-gray-400 text-sm">Busca y añade cartas a tu colección</p>
+            <h2 className="text-2xl font-bold text-white">Añadir Carta a Colección</h2>
+            <p className="text-gray-400 text-sm">Busca y configura los detalles de tu copia.</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-lg">
-            <span className="text-2xl">✕</span>
-          </button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors text-2xl">✕</button>
         </div>
 
-        {/* Buscador */}
+        {/* Buscador y Navegación */}
         <div className="p-6 bg-gray-800 border-b border-gray-700">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Ej: Pikachu, Charizard, Energy..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-gray-900 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-500"
-              autoFocus
-            />
-            <button 
-              type="submit" 
-              disabled={isSearching}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {isSearching ? 'Buscando...' : 'Buscar'}
+          {selectedCard ? (
+            <button onClick={handleBackToSearch} className="text-blue-400 hover:underline text-sm mb-4 flex items-center gap-1">
+              &larr; Volver a resultados
             </button>
-          </form>
+          ) : (
+            <form onSubmit={handleSearch} className="flex gap-4">
+              <input
+                type="text"
+                placeholder="Buscar por nombre o ID de carta..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 bg-gray-900 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-500"
+                autoFocus
+              />
+              <button type="submit" disabled={isSearching} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50">
+                {isSearching ? 'Buscando...' : 'Buscar'}
+              </button>
+            </form>
+          )}
         </div>
 
-        {/* 4. ACTUALIZAR LA LÓGICA DE RENDERIZADO (Igual que Wishlist) */}
+        {/* --- CONTENIDO PRINCIPAL: CONFIGURACIÓN O RESULTADOS --- */}
         <div className="flex-1 overflow-y-auto p-6 bg-gray-900/30">
           
-          {isSearching ? (
-            // ESTADO: CARGANDO
-            <div className="flex justify-center items-center h-full">
-              <Loader />
-            </div>
-          ) : results.length === 0 ? (
-            hasSearched ? (
-              // ESTADO: NO ENCONTRADO (La tele)
-              <div className="flex justify-center items-center h-full">
-                <NotFoundError />
+          {/* VISTA 1: CONFIGURACIÓN DE ESTADO */}
+          {selectedCard ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              
+              {/* Columna Izquierda: Carta seleccionada */}
+              <div className="md:col-span-1 flex flex-col items-center">
+                <h3 className="text-xl font-bold mb-4 text-white">{selectedCard.name}</h3>
+                <div className="relative w-full max-w-xs aspect-[2.5/3.5] rounded-lg overflow-hidden border-4 border-blue-500 shadow-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={selectedCard.image} alt={selectedCard.name} className="w-full h-full object-contain" />
+                </div>
               </div>
-            ) : (
-              // ESTADO: INICIAL
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-60">
-                <span className="text-6xl mb-4">🔍</span>
-                <p className="text-lg">Busca una carta para empezar</p>
-              </div>
-            )
-          ) : (
-            // ESTADO: RESULTADOS
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {results.map((card) => (
-                <div key={card.id} className="bg-gray-900 rounded-lg p-3 border border-gray-700 flex flex-col gap-3 group hover:border-blue-500/50 hover:shadow-lg transition-all">
-                  <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg bg-gray-800">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={card.image} 
-                      alt={card.name} 
-                      className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-300" 
-                    />
+
+              {/* Columna Derecha: Formulario de Estado */}
+              <div className="md:col-span-2 space-y-6 bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3 className="text-xl font-semibold mb-4 text-blue-400">Detalles de tu Copia</h3>
+                
+                {/* 1. Condición de la Carta */}
+                <div className="space-y-2">
+                  <label htmlFor="condition" className="block text-sm font-medium text-gray-400">Condición Física</label>
+                  <select
+                    id="condition"
+                    value={condition}
+                    onChange={(e) => setCondition(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-900 border border-gray-600 text-white rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {ConditionOptions.map(cond => (
+                      <option key={cond} value={cond}>{cond}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. Intercambiabilidad (Toggle) */}
+                <div className="flex items-center justify-between border-t border-gray-700 pt-6">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-400">Disponible para Intercambio</label>
+                    <p className="text-xs text-gray-500">Si está marcado, otros usuarios pueden proponerte un intercambio por esta carta.</p>
                   </div>
-                  <div className="text-center mt-auto">
-                    <h3 className="text-white font-medium text-sm truncate mb-2" title={card.name}>{card.name}</h3>
+                  <button 
+                    onClick={() => setIsTradable(prev => !prev)}
+                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${isTradable ? 'bg-green-500' : 'bg-gray-600'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${isTradable ? 'translate-x-7' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                
+                {/* Botón Final */}
+                <div className="pt-4 border-t border-gray-700">
+                  <button
+                    onClick={handleFinalAdd}
+                    disabled={isAdding === selectedCard.id}
+                    className="w-full py-3 px-6 rounded-lg text-lg font-bold transition-colors flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 disabled:bg-gray-600"
+                  >
+                    {isAdding === selectedCard.id ? 'Guardando...' : `+ Añadir a mi Colección`}
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          ) : (
+            
+            /* VISTA 2: LISTA DE RESULTADOS DE BÚSQUEDA */
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {results.length === 0 && !isSearching ? (
+                <div className="text-center text-gray-500 mt-10 col-span-full">
+                  <span className="text-6xl mb-4">🔍</span>
+                  <p className="text-lg">Busca una carta para empezar</p>
+                </div>
+              ) : (
+                results.map((card) => (
+                  <div key={card.id} className="bg-gray-900 rounded-xl p-4 border border-gray-700 flex flex-col gap-3 group hover:border-blue-500/50 transition-all cursor-pointer" onClick={() => handleSelectCard(card)}>
+                    <div className="relative aspect-[2.5/3.5] overflow-hidden rounded-lg bg-gray-900">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={card.image} alt={card.name} className="w-full h-full object-contain" />
+                    </div>
+                    <h3 className="text-white font-medium text-sm text-center truncate" title={card.name}>{card.name}</h3>
                     <button
-                      onClick={() => handleAddClick(card.id, card.category)}
-                      disabled={isAdding === card.id}
-                      className="w-full bg-green-600 hover:bg-green-500 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex justify-center items-center gap-2 shadow-lg shadow-green-900/20"
+                      onClick={(e) => { e.stopPropagation(); handleSelectCard(card); }}
+                      className="w-full py-2 px-3 rounded-lg text-xs font-medium transition-colors bg-blue-600 hover:bg-blue-500 text-white"
                     >
-                      {isAdding === card.id ? 'Añadiendo...' : '+ Añadir'}
+                      Elegir y Configurar
                     </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </div>

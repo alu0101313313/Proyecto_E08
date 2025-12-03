@@ -31,10 +31,7 @@ const cleanDamageValue = (damage: any): number => {
  */
 cardRouter.post("/cards", protect, async (req, res) => {
 
-  const id_ = req.body.id;
-  const category = req.body.category;
-  // Capturamos si el usuario la marca para intercambio (default false)
-  const isForTrade = req.body.isForTrade || false; 
+  const { id: id_, category, condition, isTradable } = req.body; 
 
   // 1. Verificación de seguridad
   if (!req.user) {
@@ -77,7 +74,8 @@ cardRouter.post("/cards", protect, async (req, res) => {
       ...cardDict,
       image: imageUrl,
       owner: req.user._id, 
-      isTradable: isForTrade,
+      isTradable: isTradable,
+      condition: condition,
       attacks: cleanedAttacks // usamos los ataques limpiados por si acaso
     };
 
@@ -231,6 +229,40 @@ cardRouter.delete("/cards/:id", protect, async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: "Error deleting card", error });
+  }
+});
+
+/**
+ * @desc Update the isTradable status of a card.
+ * @route PATCH /cards/:id/tradable
+ * @access Private
+ */
+cardRouter.patch("/cards/:id/tradable", protect, async (req, res) => {
+  const { id } = req.params;
+  const { isTradable } = req.body;
+
+  if (!req.user) return res.status(401).json({ message: "Not authorized" });
+
+  if (typeof isTradable !== "boolean") {
+    return res.status(400).json({ message: "isTradable must be a boolean" });
+  }
+
+  try {
+    const idParam = String(id);
+    const isObjectId = mongoose.Types.ObjectId.isValid(idParam);
+    const filter = isObjectId ? { _id: idParam, owner: req.user._id } : { id: idParam, owner: req.user._id };
+
+    let updatedCard = await PokemonCard.findOneAndUpdate(filter, { isTradable }, { new: true });
+    if (!updatedCard) updatedCard = await TrainerCard.findOneAndUpdate(filter, { isTradable }, { new: true });
+    if (!updatedCard) updatedCard = await EnergyCard.findOneAndUpdate(filter, { isTradable }, { new: true });
+
+    if (!updatedCard) {
+      return res.status(404).json({ message: "Card not found or you don't own it" });
+    }
+
+    return res.status(200).json({ message: "Card tradable status updated", updatedCard });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating card", error });
   }
 });
 

@@ -130,8 +130,8 @@ export default function WishlistPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Cargando deseos...</div>;
-  if (error) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Error: {error}</div>;
+  if (loading) return <Loader />; // PRIMERA VERIFICACIÓN DE CARGA/ERROR
+  if (error) return <NotFoundError />;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
@@ -167,24 +167,24 @@ export default function WishlistPage() {
             </button>
           </div>
 
-          {cards.length > 0 ? (
+            {cards.length > 0 ? (
             <CardGrid 
               cards={cards} 
               onRemove={handleRemove}
-              onCardClick={handleCardClick} 
+              onCardClick={handleCardClick}
             />
-          ) : (
+            ) : (
             <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
               <span className="text-4xl mb-4">✨</span>
               <p className="text-gray-300">Tu lista de deseos está vacía.</p>
               <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="mt-4 text-pink-400 hover:underline"
+              onClick={() => setIsAddModalOpen(true)}
+              className="mt-4 text-pink-400 hover:underline"
               >
-                ¡Empieza a soñar aquí!
+              ¡Empieza a soñar aquí!
               </button>
             </div>
-          )}
+            )}
         </main>
       </div>
 

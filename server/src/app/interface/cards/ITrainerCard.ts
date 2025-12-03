@@ -26,6 +26,8 @@ import { Document } from "mongoose";
  * @category Categoría de la carta (debe ser de tipo entrenador).
  * @trainerType Tipo de entrenador representado por la carta.
  * @effect Descripción del efecto de la carta de entrenador.
+ * @owner Usuario que posee la carta.
+ * @pricing Objeto que contiene la información de precios en diferentes mercados.
  */
 export interface ITrainerCard extends Document {
   id: string;

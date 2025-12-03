@@ -17,6 +17,12 @@ export interface ISeries extends Document {
   sets: Array<ISetBrief>
 }
 
+/**
+ * Interfaz breve para representar una serie
+ * 
+ * @id Identificador único de la serie
+ * @name Nombre de la serie.
+ */
 export interface ISeriesBrief extends Document {
   id: string;
   name: string;

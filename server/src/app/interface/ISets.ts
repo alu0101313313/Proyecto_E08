@@ -36,6 +36,13 @@ export interface ISet extends Document {
   }
 }
 
+/**
+ * Interfaz breve para representar un set
+ * 
+ * @id Identificador único del set
+ * @name Nombre del set
+ * @logo 
+ */
 export interface ISetBrief extends Document {
   id: string;
   name: string;
