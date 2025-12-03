@@ -2,6 +2,31 @@ import { model, Schema } from 'mongoose';
 import type { IPokemonCard } from '../../interface/cards/IPokemonCard.js';
 import { TypeConditionCard } from '../../enums/enumConditionCard.js';
 
+/**
+ * Esquema de Mongoose para la entidad PokemonCard
+ * 
+ * @id Identificador único para la carta de Pokémon (rquerido).
+ * @name Nombre de la carta de Pokémon.
+ * @image Imagen de la carta de Pokémon.
+ * @category Categoria de la carta de Pokémon (rquerido).
+ * @setName Nombre del set a la que pertenece la carta de Pokémon.
+ * @rarity Rareza de la carta de Pokémon.
+ * @variants Objeto que contiene información de las variables de la carta de Pokémon.
+ * @updated Ultima actualización de la carta de Pokémon.
+ * @condition Condición física de la carta de Pokémon.
+ * @isTradable Condicional que indica si la carta de Pokémon esta disponible para intercambio.
+ * @hp Puntos de salud del Pokémon de la carta de Pokémon.
+ * @types Subtipo de Pokémon elemental de la carta de Pokémon.
+ * @stage Etapa evolutiva del Pokémon de la carta de Pokémon.
+ * @evolvesFrom Pokémon desde el cual evoluciona el Pokémon de la carta de Pokémon.
+ * @description Descripción incluida en la carta de Pokémon.
+ * @attacks Conjunto de ataques que tiene el Pokémon en la carta de Pokémon.
+ * @weaknesses Debilidad que tiene el Pokémon en la carta de Pokémon.
+ * @resistances Resistencia que tiene el Pokémon en la carta de Pokémon.
+ * @retreatCost Coste de retirada que tiene el Pokémon en la carta de Pokémon.
+ * @pricing Conjuto de datos relativos al precio de la carta de Pokémon.
+ * @owner Propietarios la carta de Pokémon.
+ */
 const pokemonCardSchema = new Schema<IPokemonCard>({
   id: { type: String, required: true },
   name: { type: String },
@@ -18,16 +43,12 @@ const pokemonCardSchema = new Schema<IPokemonCard>({
   stage: { type: String },
   evolvesFrom: { type: String },
   description: { type: String },
-  
-  // --- CORRECCIÓN AQUÍ: Añadimos corchetes [] para indicar Array ---
   attacks: [{
     cost: { type: [String] },
     name: { type: String },
     effect: { type: String },
-    damage: { type: Number }, // Cambiado a Number (la API puede devolver string a veces, pero intentaremos number)
+    damage: { type: Number },
   }],
-  // ----------------------------------------------------------------
-
   weaknesses: [{
     type: { type: String },
     value: String
@@ -37,7 +58,6 @@ const pokemonCardSchema = new Schema<IPokemonCard>({
     value: { type: String },
   }],
   retreatCost: { type: Number },
-  
   pricing: {
     cardmarket: {
       updated: { type: String },
@@ -58,7 +78,6 @@ const pokemonCardSchema = new Schema<IPokemonCard>({
       },
     },
   },
-  
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -67,4 +86,7 @@ const pokemonCardSchema = new Schema<IPokemonCard>({
   }
 });
 
+/**
+ * Modelo de Mongoose para la entidad PokemonCard
+ */
 export const PokemonCard = model<IPokemonCard>('PokemonCard', pokemonCardSchema);

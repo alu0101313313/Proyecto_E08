@@ -36,7 +36,6 @@ export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradabl
     <div className="bg-gray-800 p-4 rounded-lg text-white">
       { /* Cabecera (titulo y ordenacion) */ }
       <div className="text-xl justify-between items-center mb-6 flex">
-        <h2 className="text-xl font-semibold">Mi Colección</h2>
         
         {/* Selector de ordenación */}
         <div className="flex items-center gap-2">

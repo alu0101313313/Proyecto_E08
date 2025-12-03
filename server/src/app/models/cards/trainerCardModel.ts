@@ -3,21 +3,31 @@ import type { ITrainerCard } from '../../interface/cards/ITrainerCard.js';
 import { TypeConditionCard } from '../../enums/enumConditionCard.js';
 
 /**
- * Mongoose schema and model for the TrainerCard entity.
+ * Esquema de Mongoose para la entidad TrainerCard
  * 
- * Fields:
- * - category: The category of the trainer card (required).
- * - id: A unique identifier for the trainer card (required).
- * - idSet: The identifier of the set to which the card belongs.
- * - idNumber: The number of the card within its set.
- * - name: The name of the trainer card.
- * - setName: An object representing the set to which the card belongs.
- * - variants: An object containing variant information for the card.
- * - updated: A string indicating the last update time for the card.
- * - condition: A string describing the condition of the card.
- * - isTradable: A boolean indicating if the card is tradable.
- * - trainerType: The type of trainer (e.g., Supporter, Item, Stadium).
- * - effect: A string describing the effect of the trainer card.
+ * @category Categoria de la carta de Entrenador (requerido).
+ * @id Identificador único para la carta de Entrenador (rquerido).
+ * @idSet Identificador único del set al que pertenece la carta de Entrenador.
+ * @idNumber Identificador único del numero de carta de Entrenador dentro del set.
+ * @name Nombre de la carta de Entrenador.
+ * @image Imagen de la carta de Entrenador.
+ * @setName Nombre del set a la que pertenece la carta de Entrenador.
+ * @rarity Rareza de la carta de Entrenador.
+ * @variants Objeto que contiene información de las variables de la carta de Entrenador.
+ * @updated Ultima actualización de la carta de Entrenador.
+ * @condition Condición física de la carta de Entrenador.
+ * @isTradable Condicional que indica si la carta de Entrenador esta disponible para intercambio.
+ * @hp Puntos de salud del Entrenador de la carta de Entrenador.
+ * @types Subtipo de Entrenador elemental de la carta de Entrenador.
+ * @stage Etapa evolutiva del Entrenador de la carta de Entrenador.
+ * @evolvesFrom Entrenador desde el cual evoluciona el Entrenador de la carta de Entrenador.
+ * @description Descripción incluida en la carta de Entrenador.
+ * @attacks Conjunto de ataques que tiene el Entrenador en la carta de Entrenador.
+ * @weaknesses Debilidad que tiene el Entrenador en la carta de Entrenador.
+ * @resistances Resistencia que tiene el Entrenador en la carta de Entrenador.
+ * @retreatCost Coste de retirada que tiene el Entrenador en la carta de Entrenador.
+ * @pricing Conjuto de datos relativos al precio de la carta de Entrenador.
+ * @owner Propietarios la carta de Entrenador.
  */
 const trainerCardSchema = new Schema<ITrainerCard>({
   category: { type: String, required: true },

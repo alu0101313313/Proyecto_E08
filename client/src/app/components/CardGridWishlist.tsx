@@ -1,105 +1,101 @@
 'use client';
-// Componente de la cuadrícula de cartas (vacío por ahora)
-import Image from 'next/image'; // librería para optimizar imágenes
-import { useState } from 'react'; // hook de React para manejar estado
-interface Card {
-  id: number;
-  name: string;
-  value: number;
-  imageUrl: string;
-}
+
+import { useState } from 'react';
+import Image from 'next/image';
 
 interface CardGridProps {
-  cards?: Card[]; // opcional, por si queremos pasar cartas como props en el futuro
+  cards: Card[];
+  onRemove?: (cardId: string | number) => Promise<void>;
+  onCardClick?: (cardId: string | number) => void;
+  // Handler para el toggle (solo se usa si es colección propia)
+  onToggleTradable?: (cardId: string, currentStatus: boolean) => Promise<void>; 
 }
 
-export default function CardGridWishlist({ cards }: CardGridProps) {
-  const [sortBy, setSortBy] = useState<'price' | 'name'>('price');
-  // esto es para manejar el estado de la ordenación (por precio o por nombre) mediante un hook de React
-  // funciona como una variable reactiva que actualiza el componente cuando cambia su valor
+interface Card {
+  id: string;
+  name?: string;
+  value: number;
+  imageUrl?: string;
+  isTradable?: boolean; 
+  condition?: string;
+}
 
-  // función para ordenar las cartas según el criterio seleccionado
+
+export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradable }: CardGridProps) {
+  const [sortBy, setSortBy] = useState<'price' | 'name'>('price');
+
   const sortedCards = cards ? [...cards].sort((a, b) => {
     if (sortBy === 'price') {
-      return b.value - a.value; // ordenar por valor (precio)
+      return (b.value ?? 0) - (a.value ?? 0);
     } else {
-
-      return a.name.localeCompare(b.name); // ordenar por nombre
-      // localeCompare es un método de strings que compara dos cadenas según las reglas del idioma
+      return (a.name ?? '').localeCompare(b.name ?? '');
     }
-  }) : []; // cartas ordenadas según el criterio seleccionado. Devuelve un array vacío si no hay cartas.
+  }) : [];
+
   return (
-    // Contenedor de la cuadrícula de cartas
     <div className="bg-gray-800 p-4 rounded-lg text-white">
       { /* Cabecera (titulo y ordenacion) */ }
       <div className="text-xl justify-between items-center mb-6 flex">
-        <h2 className="text-xl font-semibold">Mi Lista de Deseos</h2>
-
-        {/* Selector de ordenación (dropdown) */}
+        
+        {/* Selector de ordenación */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-400">Ordenar por:</span>
           <button 
-            // boton ordenar por precio
-            data-testid="sort-price-button"
             onClick={() => setSortBy('price')} 
-            // al hacer click, cambia el estado de ordenación a 'price' y se llama a la función setSortBy
-
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              sortBy === 'price' 
-              // en caso de estar seleccionado, cambia el color del boton. Si no, otro color
-              ? 'bg-blue-600 text-white hover:bg-blue-500' 
-              : 'bg-gray-700 text-white hover:bg-gray-600'
+              sortBy === 'price' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'
             }`}>
             Precio
           </button>
           <button
-            // boton ordenar por nombre
-            data-testid="sort-name-button"
             onClick={() => setSortBy('name')}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              sortBy === 'name' 
-              ? 'bg-blue-600 text-white hover:bg-blue-500'  
-              : 'bg-gray-700 text-white hover:bg-gray-600'
+              sortBy === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'
             }`}>
             Nombre
           </button>
         </div>
       </div>
+      
       { /* Cuadrícula de cartas */ }
-      <div className="grid grid-cols-6 gap-4">
-        { /* Mapeo de las cartas ordenadas */ }
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {sortedCards.length > 0 ? (
-          sortedCards.map(card => (
-            <div key={card.id}
-            data-testid={`card-${card.id}`}
-            className="relative group"> 
-            {/* relative group por si queremos añadir efectos o elementos superpuestos */ }
-              <Image
-                src={card.imageUrl}
-                alt={card.name}
-                width={200}
-                height={280}
-                className="
-                  rounded-lg
-                  w-full h-auto
-                  transition-transform duration-200
-                  hover:scale-105
-                  cursor-pointer
-                "
-              />
-              <div className="mt-2 text-center">
-                <p className="text-sm font-light text-gray-400">{card.name}</p>
-                <p className="text-xs text-gray-200 font-mono">
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(card.value)}
-                </p>
-                  
+          sortedCards.map((card) => (
+            <div key={card.id} className="relative group p-2 bg-gray-700/30 rounded-xl shadow-lg hover:shadow-blue-500/20 transition-all duration-200 border border-gray-700"> 
+              
+              {/* Imagen y Click */}
+              <div 
+                className="cursor-pointer"
+                onClick={() => onCardClick?.(card.id)}
+              >
+                <Image
+                  src={card.imageUrl ?? '/placeholder.png'}
+                  alt={card.name ?? 'Carta'}
+                  width={200}
+                  height={280}
+                  className="rounded-lg w-full h-auto transition-transform duration-200 group-hover:scale-[1.02]"
+                  unoptimized
+                />
+                <div className="mt-2 text-center">
+                  <p className="text-sm font-light text-gray-400">{card.name}</p>
+                  <p className="text-xs text-gray-200 font-mono">
+                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(card.value)}
+                  </p>
+                </div>
               </div>
-            </div>
+                {/* 3. Botón de Eliminar */}
+                {onRemove && (
+                  <button
+                    onClick={() => onRemove(card.id)}
+                    className="w-full mt-1 inline-block px-2 py-1 text-xs bg-red-600 rounded-lg text-white hover:bg-red-500 transition-colors"
+                  >🗑️</button>
+                )}
+              </div>
           ))
         ) : (
-          <p className="col-span-6 text-center text-gray-400">No hay cartas en tu colección.</p>
+          <p className="col-span-6 text-center text-gray-400 p-8">No hay cartas para mostrar.</p>
         )}
       </div>
-    </div>  
+    </div>  
   );
 }

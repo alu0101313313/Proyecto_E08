@@ -143,6 +143,28 @@ cardRouter.get("/collection", protect, async (req, res) => {
   }
 });
 
+cardRouter.get("/collection/:userId", protect, async (req, res) => {
+  if (!req.user) return res.status(401).json({ message: "Not authorized" });
+
+  try {
+    // Si viene userId en params, buscamos las de ese usuario. Si no, las mías.
+    const targetOwnerId = req.params.userId;
+
+    // Buscamos en paralelo en las 3 colecciones filtrando por dueño
+    const [pokemonCards, trainerCards, energyCards] = await Promise.all([
+      PokemonCard.find({ owner: targetOwnerId }),
+      TrainerCard.find({ owner: targetOwnerId }),
+      EnergyCard.find({ owner: targetOwnerId })
+    ]);
+
+    const allCards = [...pokemonCards, ...trainerCards, ...energyCards];
+    res.status(200).json(allCards);
+
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching collection", error });
+  }
+});
+
 /**
  * @desc Buscar usuarios que tienen una carta específica para intercambiar.
  * @route GET /cards/traders/:cardApiId
@@ -272,14 +294,60 @@ cardRouter.get("/cards/all", async (_, res) => {
     // ... tu código existente ...
 });
 
-cardRouter.get("/cards/:id", async (req, res) => {
-    // ... tu código existente ...
-});
-
-cardRouter.get("/cards/:name", async (req, res) => {
-    // ... tu código existente ...
-});
 
 cardRouter.get("/cards", async (req, res) => { 
-    // ... tu código existente ...
+  // ... tu código existente ...
 });
+
+cardRouter.get("/cards/search-owners", protect, async (req, res) => {
+  const name = req.query.name?.toString() || '';
+  
+  if(!name) {
+    return res.status(400).json({ message: "Name query parameter is required" });
+  }
+  
+  try {
+    const regex = new RegExp(name, 'i'); // Búsqueda case-insensitive. Esto significa que buscar "Pikachu" o "pikachu" dará el mismo resultado.
+    const filter = { name: regex }; 
+
+    const userFields = 'username profileImageUrl email';
+
+    // CAMBIO 2: Aseguramos el populate
+    const [pokemon, trainers, energy] = await Promise.all([
+      PokemonCard.find(filter).populate('owner', userFields),
+      TrainerCard.find(filter).populate('owner', userFields),
+      EnergyCard.find(filter).populate('owner', userFields)
+    ]);
+    const results = [...pokemon, ...trainers, ...energy].map((card: any) => ({
+      cardId: card._id,
+      name: card.name,
+      category: card.category,
+      image: card.image,
+      condition: card.condition,
+      rarity: card.rarity,
+      owner: card.owner
+    }));
+    const validResults = results.filter(card => card.owner && typeof card.owner === 'object');
+    console.log(`[SEARCH] Buscando "${name}". Encontrados totales: ${results.length}. Válidos (con dueño): ${validResults.length}`);
+    
+    res.status(200).json(validResults);
+  } catch (error) {
+    res.status(500).json({ message: "Error searching cards", error });
+  }
+  
+});
+
+// cardRouter.get("/cards/:name", async (req, res) => {
+//   const { name } = req.params;
+  
+//   try {
+//     const pokemonCards = await PokemonCard.find({ name: new RegExp(name, 'i') });
+//     const trainerCards = await TrainerCard.find({ name: new RegExp(name, 'i') });
+//     const energyCards = await EnergyCard.find({ name: new RegExp(name, 'i') });
+
+//     if (pokemonCards.length === 0 && trainerCards.length === 0 && energyCards.length === 0) {
+//       const 
+//   }
+    
+
+// });

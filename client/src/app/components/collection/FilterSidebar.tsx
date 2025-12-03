@@ -1,163 +1,229 @@
 'use client';
-import React from 'react';
-import { useState } from 'react'; // esto es para manejar estados si es necesario
+import React, { useState } from 'react';
 
-interface FilterSidebarProps { // define las props que recibe el componente de filtro
+interface FilterSidebarProps {
   totalValue: string;
   totalCards: number;
+  onFiltersChange?: (cards: any[]) => void; // <- para devolver las cartas filtradas al padre
 }
-export default function FilterSidebar( { totalValue, totalCards }: FilterSidebarProps) {
-  // mapa para decir que filtros estan activos (si es necesario)
-  // openFilter es el objeto que recuerda los filtros abiertos o seleccionados
-  // setOpenFilter es la función para actualizar ese objeto
-  type FilterKey = 'edicion' | 'rareza' | 'condicion' | 'tipo'; // claves posibles de filtros
-  type Filters = Record<FilterKey, boolean>; // tipo del objeto de filtros (abierto/cerrado)
+
+export default function FilterSidebar({ totalValue, totalCards, onFiltersChange }: FilterSidebarProps) {
+
+  type FilterKey = 'edicion' | 'rareza' | 'condicion' | 'tipo';
+  type Filters = Record<FilterKey, boolean>;
 
   const [openFilter, setOpenFilter] = useState<Filters>({
     edicion: false,
     rareza: false,
     condicion: false,
     tipo: false,
-  })
-  // por defecto todos los filtros estan cerrados (false)
+  });
 
-  // funcion para manejar el click en un filtro
+  // Estado: valores seleccionados
+  const [selectedFilters, setSelectedFilters] = useState({
+    edition: [] as string[],
+    rarity: [] as string[],
+    condition: [] as string[],
+    cardType: [] as string[],
+  });
+
+  // ===========================
+  // Cambiar el filtro visual (abrir/cerrar)
+  // ===========================
   const toggleFilter = (filterName: FilterKey) => {
     setOpenFilter((prev) => ({
-      ...prev, // copia el estado previo
-      [filterName]: !prev[filterName], // cambia el estado del filtro que tenia antes clickeado
+      ...prev,
+      [filterName]: !prev[filterName],
     }));
-  }
+  };
 
+  // ===========================
+  // Seleccionar o deseleccionar una opción
+  // ===========================
+  const toggleOption = (group: keyof typeof selectedFilters, value: string) => {
+    setSelectedFilters((prev) => {
+      const exists = prev[group].includes(value);
+
+      return {
+        ...prev,
+        [group]: exists
+          ? prev[group].filter((v) => v !== value)
+          : [...prev[group], value],
+      };
+    });
+  };
+
+  // ===========================
+  // Llamada al backend GET /collection/filter
+  // ===========================
+  const applyFilters = async () => {
+    const params = new URLSearchParams();
+
+    if (selectedFilters.edition.length > 0)
+      params.append("edition", selectedFilters.edition.join(","));
+
+    if (selectedFilters.rarity.length > 0)
+      params.append("rarity", selectedFilters.rarity.join(","));
+
+    if (selectedFilters.condition.length > 0)
+      params.append("condition", selectedFilters.condition.join(","));
+
+    if (selectedFilters.cardType.length > 0)
+      params.append("cardType", selectedFilters.cardType.join(","));
+
+    const response = await fetch(`/api/collection/filter?${params.toString()}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const cards = await response.json();
+    onFiltersChange?.(cards);
+  };
+
+
+  // ===========================
+  // UI principal
+  // ===========================
   return (
     <div className="bg-gray-800 p-4 rounded-lg">
-      <h2 className="text-white text-lg font-semibold mb-4">Filtros</h2>
-      {/* filtro de edicion/set*/}
-      {/* 'justify-between' empuja el título a la izq. y la flecha a la der. */}
+      <h2 className="text-white text-lg font-semibold mb-4 flex justify-between">
+        Filtros
+        <button
+          onClick={applyFilters}
+          className="bg-blue-500 px-3 py-1 rounded text-white text-sm hover:bg-blue-600"
+        >
+          Aplicar
+        </button>
+      </h2>
 
 
-      <div className="flex justify-between items-center cursor-pointer"
-        onClick={() => toggleFilter('edicion')} // al clickar, cambia el estado del filtro 'edicion'
-      >
-        <h3 className={"text-md font-medium " + (openFilter.edicion ? 'text-white' : 'text-gray-400')}> Edicion/set</h3>
-
-        
-        <span className={`text-gray-500 text-xl transition-transform ${openFilter.edicion ? 'rotate-90' : ''}`}
-          >{'>'}</span>
-      </div>
-
-      {/* Contenido del filtro de edicion (se muestra solo si openFilter.edicion es true) */}
-      {openFilter.edicion && (
-        <div className="mt-2 pl-4 text-gray-400">
-          {/* Aquí irían las opciones específicas del filtro de edición */}
-          <p className="text-sm hover:text-white cursor-pointer">Journey Together</p>
-          <p className="text-sm hover:text-white cursor-pointer">Destined Rivals</p>
-          <p className="text-sm hover:text-white cursor-pointer">Black Bolt</p>
-          <p className="text-sm hover:text-white cursor-pointer">White Flare</p>
-          <p className="text-sm hover:text-white cursor-pointer">Mega Evolution</p>
-          <p className="text-sm hover:text-white cursor-pointer">Phantasmal Flames</p>
-        </div>
-      )}
-      {/* Linea de separación */}
-      <hr className="my-4 border-gray-700 mt-2" />
-
-
-      {/* filtro de rareza*/}
+      {/* ===========================
+          Filtro RAREZA
+      =========================== */}
       <div className="flex justify-between items-center cursor-pointer"
         onClick={() => toggleFilter('rareza')}
       >
-        <h3 className={"text-md font-medium " + (openFilter.rareza ? 'text-white ' : 'text-gray-400')}> Rareza</h3>
-
-        <span className={`text-gray-500 text-xl transition-transform ${openFilter.rareza ? 'rotate-90' : ''}`}
-          >{'>'}</span>
+        <h3 className={`text-md font-medium ${openFilter.rareza ? 'text-white' : 'text-gray-400'}`}>
+          Rareza
+        </h3>
+        <span className={`text-gray-500 text-xl transition-transform ${openFilter.rareza ? 'rotate-90' : ''}`}>
+          {'>'}
+        </span>
       </div>
-      {/* Contenido del filtro de rareza (se muestra solo si openFilter.rareza es true) */}
-      {openFilter.rareza && (
-        <div className="mt-2 pl-4 text-gray-400">
-          {/* Aquí irían las opciones específicas del filtro de rareza */}
-          <p className="text-sm hover:text-white cursor-pointer">Común</p>
-          <p className="text-sm hover:text-white cursor-pointer">Infrecuente</p>
-          <p className="text-sm hover:text-white cursor-pointer">Rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Doble rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Ilustracion rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Ilustracion especial rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Ultra rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Hiper rara</p>
-          <p className="text-sm hover:text-white cursor-pointer">Reverse Holo</p>
-          <p className="text-sm hover:text-white cursor-pointer">Promo</p>
 
+      {openFilter.rareza && (
+        <div className="mt-2 pl-4 text-gray-400 space-y-1">
+          {[
+            "Common",
+            "Uncommon",
+            "Rare",
+            "Rare Double",
+            "Rare Illustration",
+            "Rare Special Illustration",
+            "Rare Ultra",
+            "Rare Hiper",
+            "Reverse Holo",
+            "Promo",
+          ].map((ra) => (
+            <p
+              key={ra}
+              onClick={() => toggleOption("rarity", ra)}
+              className={`text-sm cursor-pointer hover:text-white ${
+                selectedFilters.rarity.includes(ra) ? "text-white" : ""
+              }`}
+            >
+              {ra}
+            </p>
+          ))}
         </div>
       )}
-      {/* Linea de separación */}
+
       <hr className="my-4 border-gray-700 mt-2" />
 
-
-      {/* filtro de condicion*/}
+      {/* ===========================
+          Filtro CONDICION
+      =========================== */}
       <div className="flex justify-between items-center cursor-pointer"
         onClick={() => toggleFilter('condicion')}
       >
-        <h3 className={"text-md font-medium " + (openFilter.condicion ? 'text-white ' : 'text-gray-400')}> Condición</h3>
-        <span className={`text-gray-500 text-xl transition-transform ${openFilter.condicion ? 'rotate-90' : ''}`}
-          >{'>'}</span>
+        <h3 className={`text-md font-medium ${openFilter.condicion ? 'text-white' : 'text-gray-400'}`}>
+          Condición
+        </h3>
+        <span className={`text-gray-500 text-xl transition-transform ${openFilter.condicion ? 'rotate-90' : ''}`}>
+          {'>'}
+        </span>
       </div>
-      {/* Contenido del filtro de condicion (se muestra solo si openFilter.condicion es true) */}
-      {openFilter.condicion && (
-        <div className="mt-2 pl-4 text-gray-400">
-          {/* Aquí irían las opciones específicas del filtro de condición */}
-          <p className="text-sm hover:text-white cursor-pointer">Gradeada</p>
-          <p className="text-sm hover:text-white cursor-pointer">Perfecta</p>
-          <p className="text-sm hover:text-white cursor-pointer">Casi perfecta</p>
-          <p className="text-sm hover:text-white cursor-pointer">Ligeramente jugada</p>
-          <p className="text-sm hover:text-white cursor-pointer">Jugada</p>
-          <p className="text-sm hover:text-white cursor-pointer">Muy jugada</p>
-          <p className="text-sm hover:text-white cursor-pointer">Dañada</p>
 
+      {openFilter.condicion && (
+        <div className="mt-2 pl-4 text-gray-400 space-y-1">
+          {[
+            "Mint",
+            "Near Mint",
+            "Excellent",
+            "Good",
+            "Lightly Played",
+            "Played",
+            "Poor",
+          ].map((co) => (
+            <p
+              key={co}
+              onClick={() => toggleOption("condition", co)}
+              className={`text-sm cursor-pointer hover:text-white ${
+                selectedFilters.condition.includes(co) ? "text-white" : ""
+              }`}
+            >
+              {co}
+            </p>
+          ))}
         </div>
       )}
 
-
-      
-      {/* Linea de separación */}
       <hr className="my-4 border-gray-700 mt-2" />
-      {/* filtro de tipo*/}
-      <div className="flex justify-between items-center cursor-pointer" 
+
+      {/* ===========================
+          Filtro TIPO
+      =========================== */}
+      <div className="flex justify-between items-center cursor-pointer"
         onClick={() => toggleFilter('tipo')}
       >
-        <h3 className={"text-md font-medium " + (openFilter.tipo ? 'text-white ' : 'text-gray-400')}> Tipo</h3>
-        <span className={`text-gray-500 text-xl transition-transform ${openFilter.tipo ? 'rotate-90' : ''}`}
-          >{'>'}</span>
+        <h3 className={`text-md font-medium ${openFilter.tipo ? 'text-white' : 'text-gray-400'}`}>
+          Tipo
+        </h3>
+        <span className={`text-gray-500 text-xl transition-transform ${openFilter.tipo ? 'rotate-90' : ''}`}>
+          {'>'}
+        </span>
       </div>
-      {/* Contenido del filtro de tipo (se muestra solo si openFilter.tipo es true) */}
+
       {openFilter.tipo && (
-        <div className="mt-2 pl-4 text-gray-400">
-          {/* Aquí irían las opciones específicas del filtro de tipo */}
-          <p className="text-sm hover:text-white cursor-pointer">Pokemon</p>
-          <p className="text-sm hover:text-white cursor-pointer">Entrenador</p>
-          <p className="text-sm hover:text-white cursor-pointer">Energía</p>
-          <p className="text-sm hover:text-white cursor-pointer">Objeto</p>
+        <div className="mt-2 pl-4 text-gray-400 space-y-1">
+          {["Pokemon", "Trainer", "Energy"].map((tp) => (
+            <p
+              key={tp}
+              onClick={() => toggleOption("cardType", tp)}
+              className={`text-sm cursor-pointer hover:text-white ${
+                selectedFilters.cardType.includes(tp) ? "text-white" : ""
+              }`}
+            >
+              {tp}
+            </p>
+          ))}
         </div>
       )}
-    {/* Linea de separación */}
-    <hr className="my-4 border-gray-700 mt-2" />
 
-    {/* Estadisticas (numero de cartas, precio) */}
+      <hr className="my-4 border-gray-700 mt-2" />
 
-      {/* Fila de Valor Total */}
+      {/* ===========================
+          Estadísticas
+      =========================== */}
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-gray-400">Valor Total:</span>
         <span className="text-md font-semibold text-white">{totalValue}</span>
       </div>
 
-      {/* Fila de Cartas */}
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-400">Cartas:</span>
         <span className="text-md font-semibold text-white">{totalCards}</span>
       </div>
     </div>
-
-    
   );
 }
-// my-4 es una clase de Tailwind CSS que aplica un margen vertical (arriba y abajo) de 1 rem (16 píxeles) a un elemento.
-// mt-2 aplica un margen superior de 0.5 rem (8 píxeles).
-// cursor-pointer hace que el cursor cambie a una mano cuando se pasa sobre el elemento, indicando que es clickeable.

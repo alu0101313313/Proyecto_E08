@@ -48,3 +48,15 @@ userRouter.get('/users/:userId', protect, async (req, res) => {
     res.status(500).json({ message: "Error obteniendo usuario" });
   }
 });
+
+userRouter.get('/users/:userId/profileImageUrl', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('profileImageUrl');
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.status(200).json({ profileImageUrl: user.profileImageUrl });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener la imagen de perfil' });
+  }
+});

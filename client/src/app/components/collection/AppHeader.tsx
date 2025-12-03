@@ -45,8 +45,13 @@ export default function AppHeader() {
 
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      console.log('Buscar:', searchTerm);
-      alert(`Buscar: ${searchTerm}`);
+      if (searchTerm.trim()) {
+        // CAMBIO: Redirigir a la página de owners con lo que escribió el usuario
+        // encodeURIComponent es importante por si escribe espacios o símbolos
+        router.push(`/owners?q=${encodeURIComponent(searchTerm)}`);
+        
+        setSearchTerm(''); 
+      }
     }
   };
 

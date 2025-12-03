@@ -12,7 +12,7 @@ export default function UserCard({ userId, username, avatarUrl }: UserCardProps)
   const imageSrc = avatarUrl || 'https://images.pokemontcg.io/base1/4.png';
 
   return (
-    <Link href={`/profile/${userId}`} className="block group">
+    <Link href={`/user/${userId}`} className="block group">
       <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-300 flex items-center gap-4">
         
         {/* Avatar */}

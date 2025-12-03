@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import AppHeader from '@/app/components/collection/AppHeader';
 import FilterSidebar from '@/app/components/collection/FilterSidebar';
-import CardGrid from '@/app/components/collection/CardGrid';
+import CardGridWishlist from '@/app/components/CardGridWishlist';
 import AddWishlistModal from '../components/modals/wishlistModal';
 import CardDetailModal from '../components/modals/CardDetailModal';
 
@@ -167,24 +167,24 @@ export default function WishlistPage() {
             </button>
           </div>
 
-            {cards.length > 0 ? (
-            <CardGrid 
-              cards={cards} 
-              onRemove={handleRemove}
-              onCardClick={handleCardClick}
-            />
-            ) : (
-            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
-              <span className="text-4xl mb-4">✨</span>
-              <p className="text-gray-300">Tu lista de deseos está vacía.</p>
-              <button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="mt-4 text-pink-400 hover:underline"
-              >
-              ¡Empieza a soñar aquí!
-              </button>
-            </div>
-            )}
+              {cards.length > 0 ? (
+              <CardGridWishlist 
+                cards={cards} 
+                onRemove={handleRemove}
+                onCardClick={handleCardClick}
+              />
+              ) : (
+              <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
+                <span className="text-4xl mb-4">✨</span>
+                <p className="text-gray-300">Tu lista de deseos está vacía.</p>
+                <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="mt-4 text-pink-400 hover:underline"
+                >
+                ¡Empieza a soñar aquí!
+                </button>
+              </div>
+              )}
         </main>
       </div>
 

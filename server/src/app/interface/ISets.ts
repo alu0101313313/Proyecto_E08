@@ -41,7 +41,9 @@ export interface ISet extends Document {
  * 
  * @id Identificador único del set
  * @name Nombre del set
- * @logo 
+ * @logo URL del logo perteneciente al set
+ * @symbol Símbolo representativo del set.
+ * @cardCount Objeto que contiene el conteo de cartas en diferentes categorías.
  */
 export interface ISetBrief extends Document {
   id: string;

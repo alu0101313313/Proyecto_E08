@@ -51,6 +51,65 @@ collectionRouter.get('/collection', protect, async (req, res) => {
   }
 });
 
+// Ruta para obtener las cartas de la colección del usuario autenticado pasado por filtros de edicion, rareza, condicion o tipo
+collectionRouter.get('/collection/filter', protect, async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Usuario no autenticado' });
+    }
+
+    const { rarity, condition, cardType } = req.query;
+
+    // Obtener el usuario y sus IDs
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const cardIds = user.cardCollection || [];
+    if (cardIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Normalizamos a strings
+    const idStrings = cardIds.map((c: any) => c.toString());
+
+    // ObjectIds válidos
+    const validObjectIds = idStrings
+      .filter((s: string) => mongoose.Types.ObjectId.isValid(s))
+      .map((s: string) => new mongoose.Types.ObjectId(s));
+
+    // ==== FILTROS DINÁMICOS ====
+    const baseFilters: any = {
+      $or: [
+        { _id: { $in: validObjectIds } },
+        { id: { $in: idStrings } }
+      ]
+    };
+
+    if (rarity) baseFilters.rarity = { $in: (rarity as string).split(',') };
+    if (condition) baseFilters.condition = { $in: (condition as string).split(',') };
+    if (cardType) baseFilters.type = { $in: (cardType as string).split(',') };
+
+    // Buscar en las tres colecciones con filtros aplicados
+    const [pokemonCards, trainerCards, energyCards] = await Promise.all([
+      PokemonCard.find(baseFilters),
+      TrainerCard.find(baseFilters),
+      EnergyCard.find(baseFilters)
+    ]);
+
+    const cards = [...pokemonCards, ...trainerCards, ...energyCards];
+
+    return res.status(200).json(cards);
+
+  } catch (error) {
+    console.error('Error al filtrar la colección:', error);
+    return res.status(500).json({ message: 'Error al filtrar las cartas', error });
+  }
+});
+
+
 // Añadir una carta a la colección del usuario autenticado
 collectionRouter.post('/collection/add', protect, async (req, res) => {
   try {

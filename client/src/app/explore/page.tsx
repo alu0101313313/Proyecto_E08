@@ -80,8 +80,10 @@ export default function ExplorePage() {
           {results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {results.map((user) => (
+                // CAMBIO: Usamos UserCard directamente. 
+                // Ya no hay div wrapper con onClick, UserCard maneja el Link internamente.
                 <UserCard 
-                  key={user._id} 
+                  key={user._id}
                   userId={user._id} 
                   username={user.username} 
                   avatarUrl={user.profileImageUrl} 

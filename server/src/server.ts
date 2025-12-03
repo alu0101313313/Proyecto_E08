@@ -36,16 +36,12 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
 // Aquí irán tus otras rutas
-// app.use('/api/users', userRoutes);
-// app.use('/api/cards', cardRoutes);
 app.use('/api', serieRouter);
 app.use('/api', setRouter);
 app.use('/api', cardRouter);
 app.use('/api', collectionRouter);
 app.use('/api', wishlistRouter);
 app.use('/api/', userRouter);
-
-
 
 app.get('/', (req, res) => {
   res.send('API del servidor de Pokémon TCG funcionando');

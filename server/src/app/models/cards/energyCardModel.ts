@@ -3,25 +3,28 @@ import type { IEnergyCard } from "../../interface/cards/IEnergyCard.js";
 import { TypeConditionCard } from "../../enums/enumConditionCard.js";
 
 /**
- * Mongoose schema and model for the EnergyCard entity.
+ * Esquema de Mongoose para la entidad EnergyCard
  * 
- * Fields:
- * - id: A unique identifier for the energy card (required).
- * - name: The name of the energy card.
- * - setName: An object representing the set to which the card belongs.
- * - variants: An object containing variant information for the card.
- * - updated: A string indicating the last update time for the card.
- * - condition: A string describing the condition of the card.
- * - isTradable: A boolean indicating if the card is tradable.
- * - category: The category of the energy card (required).
- * - energyType: The type of energy provided by the card.
- * - energyTypePokemon: An array of Pokémon types that can use this energy.
- * - effect: A string describing the effect of the energy card.
+ * @id Identificador único para la carta de Energía (rquerido).
+ * @name Nombre de la carta de Energía.
+ * @setName Nombre del set al que pertenece la carta de Energía.
+ * @variants Objeto que contiene información de las variables de la carta de Energía.
+ * @image URL de la imagen de la carta de Energía.
+ * @updated Última actualización de la carta de Energía.
+ * @rarity Rareza de la carta de Energía.
+ * @condition Condición física de la carta de Energía.
+ * @isTradable Condicional que indica si la carta de Energía esta disponible para intercambio.
+ * @category Categoria de la carta de Energía (requerido).
+ * @energyType Subtipo de energía elemental de la carta de Energía.
+ * @energyTypePokemon Conjuto de tipos elementales de pokemon que puede tener la carta de Energía.
+ * @effect Describe el efecto que tiene la carta de Energía.
+ * @owner Propietarios de la carta de Energía.
+ * @pricing Conjuto de datos relativos al precio de la carta de Energía.
  */
 const energyCardSchema = new Schema<IEnergyCard>({
   id: { type: String, required: true },
   name: { type: String },
-  setName: { type: Object },
+  setName: { type: String },
   variants: { type: Object },
   image: { type: String },
   updated: { type: String },
@@ -34,9 +37,9 @@ const energyCardSchema = new Schema<IEnergyCard>({
   effect: { type: String },
   owner: {
     type: Schema.Types.ObjectId,
-    ref: 'User', // Referencia al modelo de Usuario
+    ref: 'User', 
     required: true,
-    index: true // Indexamos para búsquedas rápidas
+    index: true
   },
   pricing: {
     cardmarket: {
@@ -60,4 +63,7 @@ const energyCardSchema = new Schema<IEnergyCard>({
   }
 })
 
+/**
+ * Modelo de Mongoose para la entidad EnergyCard
+ */
 export const EnergyCard = model<IEnergyCard>('EnergyCard', energyCardSchema);
