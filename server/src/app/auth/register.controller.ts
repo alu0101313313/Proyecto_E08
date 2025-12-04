@@ -17,7 +17,14 @@ export const registerUser = asyncHandler(async (req: Request, res: Response) => 
     throw new Error('Por favor, complete todos los campos');
   }
 
-  // 2. Verificar si el usuario ya existe (por email o username)
+  // 2. Validar formato de contraseña
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/;
+  if (!passwordRegex.test(password)) {
+    res.status(400);
+    throw new Error('La contraseña debe tener al menos una letra y un número');
+  }
+
+  // 3. Verificar si el usuario ya existe (por email o username)
   const userExists = await User.findOne<IUser>({ $or: [{ email }, { username }] });
 
   if (userExists) {

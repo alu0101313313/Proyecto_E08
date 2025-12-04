@@ -16,6 +16,7 @@ import { Document, Types } from 'mongoose';
 
 /**
  * Interfaz principal para el documento de Usuario.
+ * 
  * @username Nombre de usuario único.
  * @email Correo electrónico único del usuario.
  * @password Contraseña hasheada del usuario.
