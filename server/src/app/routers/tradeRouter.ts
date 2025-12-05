@@ -23,7 +23,7 @@ tradeRouter.post("/trades", async (req, res) => {
     for (const item of user1Items as ICardBrief[]) {
       if (user2Items.find((i: ICardBrief) => i.id === item.id)) {
         return res.status(400).json({ message: "Users cannot trade the same card" });
-      } else if (user2Items.collection.incluides(item.id)) {
+      } else if (user2Items.collection.includes(item.id)) {
         return res.status(400).json({ message: "User2 already owns one of the cards offered by User1" });
       }
 

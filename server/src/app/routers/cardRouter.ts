@@ -80,17 +80,25 @@ cardRouter.post("/cards", protect, async (req, res) => {
     };
 
     // Normalizamos la categoría: preferimos la que envía el cliente, y si no
-    // existe usamos la que nos devuelve la API externa (`cardDict.category`).
+    // existe o está vacía, usamos OBLIGATORIAMENTE la que nos devuelve la API externa.
     const rawCategory = (category || (cardDict && cardDict.category) || '').toString();
-    const lc = rawCategory.toLowerCase();
+    
+    // Si el cliente no envió categoría, usamos la de la API
+    const categoryToUse = (category && category.trim()) ? category : (cardDict?.category || '');
+    const lc = categoryToUse.toLowerCase();
+    
     // Detección más tolerante: comprobamos varias subcadenas (ES/EN, acentos, variantes)
-    let resolvedCategory: string = TypeCard.POKEMON; // default
-    if (lc.includes('train') || lc.includes('trainer') || lc.includes('entren')) resolvedCategory = TypeCard.TRAINER;
-    else if (lc.includes('ener') || lc.includes('energy') || lc.includes('energ')) resolvedCategory = TypeCard.ENERGY;
-    else if (lc.includes('pok') || lc.includes('pokemon') || lc.includes('pokémon')) resolvedCategory = TypeCard.POKEMON;
+    let resolvedCategory: string = TypeCard.POKEMON; // default solo si no hay nada
+    if (lc.includes('train') || lc.includes('trainer') || lc.includes('entren')) {
+      resolvedCategory = TypeCard.TRAINER;
+    } else if (lc.includes('ener') || lc.includes('energy') || lc.includes('energ')) {
+      resolvedCategory = TypeCard.ENERGY;
+    } else if (lc.includes('pok') || lc.includes('pokemon') || lc.includes('pokémon')) {
+      resolvedCategory = TypeCard.POKEMON;
+    }
 
     // Log para depuración de categorías erróneas
-    console.debug('[POST /cards] id=', id_, 'req.category=', category, 'api.category=', cardDict?.category, 'resolved=', resolvedCategory);
+    console.debug('[POST /cards] id=', id_, 'req.category=', category, 'api.category=', cardDict?.category, 'categoryToUse=', categoryToUse, 'resolved=', resolvedCategory);
 
     // Ahora usamos `resolvedCategory` para decidir el modelo destino
     if (resolvedCategory === TypeCard.TRAINER) {
@@ -213,14 +221,24 @@ cardRouter.delete("/cards/:id", protect, async (req, res) => {
   const id = req.params.id; // Este debería ser el _id de la base de datos (ObjectId)
   const category = req.body.category;
 
+  console.log('=== DELETE /cards/:id ===');
+  console.log('id recibido:', id);
+  console.log('category:', category);
+  console.log('user._id:', req.user?._id);
+
   if (!req.user) return res.status(401).json({ message: "Not authorized" });
 
   try {
       // Determinamos si el parámetro corresponde a un ObjectId de Mongo
       const idParam = String(id);
       const isObjectId = mongoose.Types.ObjectId.isValid(idParam);
-      // Si es ObjectId, buscamos por _id; en caso contrario, por el campo `id`.
-      const baseFilter: any = isObjectId ? { _id: idParam, owner: req.user._id } : { id: idParam, owner: req.user._id };
+      console.log('isObjectId:', isObjectId);
+      
+      // Si es ObjectId, convertimos a mongoose.Types.ObjectId; en caso contrario, usamos string
+      const baseFilter: any = isObjectId 
+        ? { _id: new mongoose.Types.ObjectId(idParam), owner: req.user._id } 
+        : { id: idParam, owner: req.user._id };
+      console.log('baseFilter:', baseFilter);
 
       let deletedCard;
 
@@ -228,9 +246,16 @@ cardRouter.delete("/cards/:id", protect, async (req, res) => {
     const rawCat = (category || '').toString().toLowerCase();
     if (!rawCat) {
       // Intentamos eliminar en Pokemon -> Trainer -> Energy hasta que uno borre
+      console.log('Buscando en Pokemon...');
       deletedCard = await PokemonCard.findOneAndDelete(baseFilter);
-      if (!deletedCard) deletedCard = await TrainerCard.findOneAndDelete(baseFilter);
-      if (!deletedCard) deletedCard = await EnergyCard.findOneAndDelete(baseFilter);
+      if (!deletedCard) {
+        console.log('No encontrado en Pokemon, buscando en Trainer...');
+        deletedCard = await TrainerCard.findOneAndDelete(baseFilter);
+      }
+      if (!deletedCard) {
+        console.log('No encontrado en Trainer, buscando en Energy...');
+        deletedCard = await EnergyCard.findOneAndDelete(baseFilter);
+      }
     } else {
       // Si nos pasan categoría, normalizamos como en POST (tolerante)
       let resolvedCat = TypeCard.POKEMON;
@@ -238,10 +263,29 @@ cardRouter.delete("/cards/:id", protect, async (req, res) => {
       else if (rawCat.includes('ener') || rawCat.includes('energy') || rawCat.includes('energ')) resolvedCat = TypeCard.ENERGY;
       else if (rawCat.includes('pok') || rawCat.includes('pokemon') || rawCat.includes('pokémon')) resolvedCat = TypeCard.POKEMON;
 
-      if (resolvedCat === TypeCard.POKEMON) deletedCard = await PokemonCard.findOneAndDelete(baseFilter);
-      else if (resolvedCat === TypeCard.TRAINER) deletedCard = await TrainerCard.findOneAndDelete(baseFilter);
-      else if (resolvedCat === TypeCard.ENERGY) deletedCard = await EnergyCard.findOneAndDelete(baseFilter);
+      console.log('Categoría resuelta:', resolvedCat);
+      
+      if (resolvedCat === TypeCard.POKEMON) {
+        console.log('Buscando en Pokemon con filtro:', baseFilter);
+        deletedCard = await PokemonCard.findOneAndDelete(baseFilter);
+      }
+      else if (resolvedCat === TypeCard.TRAINER) {
+        console.log('Buscando en Trainer con filtro:', baseFilter);
+        // Primero, veamos qué cartas hay con ese owner
+        const allTrainerCards = await TrainerCard.find({ owner: req.user._id });
+        console.log('Total cartas Trainer del usuario:', allTrainerCards.length);
+        if (allTrainerCards.length > 0 && allTrainerCards[0]) {
+          console.log('Primera carta ejemplo:', { id: allTrainerCards[0].id, _id: allTrainerCards[0]._id });
+        }
+        deletedCard = await TrainerCard.findOneAndDelete(baseFilter);
+      }
+      else if (resolvedCat === TypeCard.ENERGY) {
+        console.log('Buscando en Energy con filtro:', baseFilter);
+        deletedCard = await EnergyCard.findOneAndDelete(baseFilter);
+      }
     }
+
+    console.log('Carta eliminada:', deletedCard ? 'SÍ' : 'NO');
 
     if (!deletedCard) {
       return res.status(404).json({ message: "Card not found or you don't own it" });
@@ -320,11 +364,13 @@ cardRouter.get("/cards/search-owners", protect, async (req, res) => {
     ]);
     const results = [...pokemon, ...trainers, ...energy].map((card: any) => ({
       cardId: card._id,
+      tcgdexId: card.id,
       name: card.name,
       category: card.category,
       image: card.image,
       condition: card.condition,
       rarity: card.rarity,
+      isTradable: card.isTradable,
       owner: card.owner
     }));
     const validResults = results.filter(card => card.owner && typeof card.owner === 'object');

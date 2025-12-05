@@ -36,10 +36,12 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
 // Aquí irán tus otras rutas
+// IMPORTANTE: collectionRouter debe ir ANTES que cardRouter
+// porque cardRouter tiene /collection/:userId que capturaría /collection/filter
+app.use('/api', collectionRouter);
 app.use('/api', serieRouter);
 app.use('/api', setRouter);
 app.use('/api', cardRouter);
-app.use('/api', collectionRouter);
 app.use('/api', wishlistRouter);
 app.use('/api/', userRouter);
 

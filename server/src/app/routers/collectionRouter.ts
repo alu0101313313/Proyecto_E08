@@ -18,35 +18,38 @@ collectionRouter.get('/collection', protect, async (req, res) => {
       return res.status(401).json({ message: 'Usuario no autenticado' });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    // Si viene userId en la query, buscamos las de ese usuario. Si no, las mías.
+    const targetUserIdString = (req.query.userId as string) || userId.toString();
+    const targetUserId = new mongoose.Types.ObjectId(targetUserIdString);
 
-    // El campo del modelo es `cardCollection` (array de ObjectId)
-    const cardIds = user.cardCollection || [];
-
-    // Si no tiene cartas devolvemos array vacío inmediatamente
-    if (!cardIds || cardIds.length === 0) {
-      return res.status(200).json([]);
-    }
-
-    // Normalizamos los ids a strings para poder comparar tanto _id como el campo `id`
-    const idStrings = cardIds.map((c: any) => c.toString());
-
-    // Separar los ids que son ObjectId válidos (para buscar por _id) y usarlos también para buscar por el campo `id`
-    const validObjectIds = idStrings.filter((s: string) => mongoose.Types.ObjectId.isValid(s)).map((s: string) => new mongoose.Types.ObjectId(s));
-
-    // Buscamos en las tres colecciones y combinamos resultados
+    // Buscamos directamente por el campo 'owner' en las cartas
     const [pokemonCards, trainerCards, energyCards] = await Promise.all([
-      PokemonCard.find({ $or: [{ _id: { $in: validObjectIds } }, { id: { $in: idStrings } }] }),
-      TrainerCard.find({ $or: [{ _id: { $in: validObjectIds } }, { id: { $in: idStrings } }] }),
-      EnergyCard.find({ $or: [{ _id: { $in: validObjectIds } }, { id: { $in: idStrings } }] })
+      PokemonCard.find({ owner: targetUserId }).lean(),
+      TrainerCard.find({ owner: targetUserId }).lean(),
+      EnergyCard.find({ owner: targetUserId }).lean()
     ]);
 
     const cards = [...pokemonCards, ...trainerCards, ...energyCards];
-    return res.status(200).json(cards);
+    
+    // Convertir _id a string para todas las cartas
+    const cardsWithStringId = cards.map(card => ({
+      ...card,
+      _id: String(card._id)
+    }));
+    
+    // Log para debug
+    if (cardsWithStringId.length > 0 && cardsWithStringId[0]) {
+      console.log('Primera carta que se envía al frontend:', {
+        _id: cardsWithStringId[0]._id,
+        id: cardsWithStringId[0].id,
+        name: cardsWithStringId[0].name,
+        tipo_de_id: typeof cardsWithStringId[0]._id
+      });
+    }
+    
+    return res.status(200).json(cardsWithStringId);
   } catch (error) {
+    console.error('Error en GET /collection:', error);
     return res.status(500).json({ message: 'Error al obtener la colección', error });
   }
 });
@@ -61,47 +64,70 @@ collectionRouter.get('/collection/filter', protect, async (req, res) => {
 
     const { rarity, condition, cardType } = req.query;
 
-    // Obtener el usuario y sus IDs
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    const cardIds = user.cardCollection || [];
-    if (cardIds.length === 0) {
-      return res.status(200).json([]);
-    }
-
-    // Normalizamos a strings
-    const idStrings = cardIds.map((c: any) => c.toString());
-
-    // ObjectIds válidos
-    const validObjectIds = idStrings
-      .filter((s: string) => mongoose.Types.ObjectId.isValid(s))
-      .map((s: string) => new mongoose.Types.ObjectId(s));
+    console.log('=== FILTROS RECIBIDOS ===');
+    console.log('rarity:', rarity);
+    console.log('condition:', condition);
+    console.log('cardType:', cardType);
 
     // ==== FILTROS DINÁMICOS ====
+    // Buscar por owner (el usuario autenticado)
     const baseFilters: any = {
-      $or: [
-        { _id: { $in: validObjectIds } },
-        { id: { $in: idStrings } }
-      ]
+      owner: userId
     };
 
+    // Aplicar filtros de rareza y condición (comunes a todos los tipos)
     if (rarity) baseFilters.rarity = { $in: (rarity as string).split(',') };
     if (condition) baseFilters.condition = { $in: (condition as string).split(',') };
-    if (cardType) baseFilters.type = { $in: (cardType as string).split(',') };
 
-    // Buscar en las tres colecciones con filtros aplicados
-    const [pokemonCards, trainerCards, energyCards] = await Promise.all([
-      PokemonCard.find(baseFilters),
-      TrainerCard.find(baseFilters),
-      EnergyCard.find(baseFilters)
-    ]);
+    console.log('=== FILTROS APLICADOS ===');
+    console.log('baseFilters:', JSON.stringify(baseFilters, null, 2));
+
+    // Para el filtro de tipo de carta, necesitamos buscar en diferentes colecciones
+    let pokemonCards: any[] = [];
+    let trainerCards: any[] = [];
+    let energyCards: any[] = [];
+
+    if (cardType) {
+      const types = (cardType as string).split(',');
+      
+      // Si se selecciona "Pokemon", buscar en PokemonCard
+      if (types.includes('Pokemon')) {
+        pokemonCards = await PokemonCard.find(baseFilters);
+      }
+      
+      // Si se selecciona "Trainer", buscar en TrainerCard
+      if (types.includes('Trainer')) {
+        trainerCards = await TrainerCard.find(baseFilters);
+      }
+      
+      // Si se selecciona "Energy", buscar en EnergyCard
+      if (types.includes('Energy')) {
+        energyCards = await EnergyCard.find(baseFilters);
+      }
+    } else {
+      // Si no hay filtro de tipo, buscar en todas las colecciones
+      [pokemonCards, trainerCards, energyCards] = await Promise.all([
+        PokemonCard.find(baseFilters),
+        TrainerCard.find(baseFilters),
+        EnergyCard.find(baseFilters)
+      ]);
+    }
 
     const cards = [...pokemonCards, ...trainerCards, ...energyCards];
 
-    return res.status(200).json(cards);
+    console.log('=== RESULTADOS ===');
+    console.log('Pokemon:', pokemonCards.length);
+    console.log('Trainer:', trainerCards.length);
+    console.log('Energy:', energyCards.length);
+    console.log('Total cards found:', cards.length);
+
+    // Convertir _id a string para todas las cartas
+    const cardsWithStringId = cards.map(card => ({
+      ...card.toObject ? card.toObject() : card,
+      _id: String(card._id)
+    }));
+
+    return res.status(200).json(cardsWithStringId);
 
   } catch (error) {
     console.error('Error al filtrar la colección:', error);
