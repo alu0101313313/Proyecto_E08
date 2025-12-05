@@ -98,11 +98,18 @@ export default function CardDetailModal({ cardId, isOpen, onClose }: CardDetailM
 
   const getPrice = () => {
     if (!card) return 0;
-    // TCGdex a veces pone los precios en la raíz o dentro de 'pricing' dependiendo de la versión
-    return card.cardmarket?.prices?.averageSellPrice 
-        || card.tcgplayer?.prices?.normal?.market 
-        || card.pricing?.cardmarket?.avgPrice // Fallback a estructura interna
-        || 0;
+    
+    // Intentar obtener precio de diferentes fuentes
+    const cardmarketPrice = card.cardmarket?.prices?.averageSellPrice 
+                         || card.cardmarket?.prices?.avg1 
+                         || card.cardmarket?.prices?.avg7 
+                         || card.cardmarket?.prices?.avg30;
+    
+    const tcgplayerPrice = card.tcgplayer?.prices?.normal?.market 
+                        || card.tcgplayer?.prices?.holofoil?.market 
+                        || card.tcgplayer?.prices?.reverseHolofoil?.market;
+    
+    return cardmarketPrice || tcgplayerPrice || 0;
   };
 
   const getSetInfo = () => {
@@ -125,7 +132,7 @@ export default function CardDetailModal({ cardId, isOpen, onClose }: CardDetailM
         
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-800 p-2 rounded-full transition-colors z-10"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-800 p-2 rounded-full transition-colors z-10 cursor-pointer"
         >
           <ArrowLeftIcon />
         </button>

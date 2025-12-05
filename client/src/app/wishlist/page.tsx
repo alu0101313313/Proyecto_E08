@@ -28,6 +28,8 @@ export default function WishlistPage() {
   const router = useRouter();
   
   const [cards, setCards] = useState<Card[]>([]);
+  const [filteredCards, setFilteredCards] = useState<Card[]>([]);
+  const [filters, setFilters] = useState<{ rarity: string[]; condition: string[]; cardType: string[] }>({ rarity: [], condition: [], cardType: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(""); 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -87,6 +89,18 @@ export default function WishlistPage() {
     loadWishlist();
   }, [router]);
 
+  // Filtrar las cartas cada vez que cambian los filtros o las cartas
+  useEffect(() => {
+    let result = [...cards];
+    // Filtrado por tipo
+    if (filters.cardType.length > 0) {
+      result = result.filter(card => filters.cardType.includes(card.category ?? ''));
+    }
+    // Filtrado por rareza y condición (si lo necesitas en el futuro)
+    // ...
+    setFilteredCards(result);
+  }, [cards, filters]);
+
   // --- AÑADIR A WISHLIST ---
   const handleAddWish = async (cardApiId: string) => {
     try {
@@ -135,21 +149,16 @@ export default function WishlistPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
-      
       <AppHeader />
-
       <div className="flex flex-col md:flex-row gap-8 p-6 md:p-8 max-w-7xl mx-auto w-full">
-        
         <aside className="w-full md:w-1/4 space-y-6">
-          {/* Reutilizamos el sidebar, el valor total aquí es "cuánto costaría comprar todo" */}
-          <FilterSidebar 
-            totalValue={calculateTotalValue(cards)} 
-            totalCards={cards.length} 
+          <FilterSidebar
+            totalValue={calculateTotalValue(cards)}
+            totalCards={cards.length}
+            onFiltersChange={setFilters}
           />
         </aside>
-
         <main className="w-full md:w-3/4">
-          
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 gap-4">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -157,8 +166,7 @@ export default function WishlistPage() {
               </h1>
               <p className="text-gray-400 text-sm">Cartas que estás buscando</p>
             </div>
-            
-            <button 
+            <button
               onClick={() => setIsAddModalOpen(true)}
               className="w-full sm:w-auto bg-pink-600 hover:bg-pink-500 text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-pink-900/20 transition-all flex items-center justify-center gap-2"
             >
@@ -166,39 +174,36 @@ export default function WishlistPage() {
               <span>Añadir Deseo</span>
             </button>
           </div>
-
-              {cards.length > 0 ? (
-              <CardGridWishlist 
-                cards={cards} 
-                onRemove={handleRemove}
-                onCardClick={handleCardClick}
-              />
-              ) : (
-              <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
-                <span className="text-4xl mb-4">✨</span>
-                <p className="text-gray-300">Tu lista de deseos está vacía.</p>
-                <button 
+          {filteredCards.length > 0 ? (
+            <CardGridWishlist
+              cards={filteredCards}
+              onRemove={handleRemove}
+              onCardClick={handleCardClick}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
+              <span className="text-4xl mb-4">✨</span>
+              <p className="text-gray-300">Tu lista de deseos está vacía.</p>
+              <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="mt-4 text-pink-400 hover:underline"
-                >
+              >
                 ¡Empieza a soñar aquí!
-                </button>
-              </div>
-              )}
+              </button>
+            </div>
+          )}
         </main>
       </div>
-
-      <AddWishlistModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-        onAdd={handleAddWish} 
+      <AddWishlistModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddWish}
       />
       <CardDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         cardId={selectedCardId}
       />
-
     </div>
   );
 }

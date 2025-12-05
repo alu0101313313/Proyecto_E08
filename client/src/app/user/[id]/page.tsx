@@ -203,9 +203,10 @@ export default function CollectionPage() {
         c.id === idString ? { ...c, isTradable: !currentStatus } : c
       ));
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(`Fallo al actualizar el estado: ${err.message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      alert(`Fallo al actualizar el estado: ${message}`);
     }
   };
 

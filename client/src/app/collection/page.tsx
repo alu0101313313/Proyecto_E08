@@ -13,7 +13,8 @@ import Loader from '../components/ui/loader';
 import NotFoundError from '../components/ui/notfoundError';
 
 interface Card {
-  id: string;
+  id: string; // MongoDB _id
+  tcgId?: string; // API TCG id
   name?: string;
   value: number;
   imageUrl?: string;
@@ -58,6 +59,7 @@ export default function CollectionPage() {
   const targetUserId = searchParams.get('userId'); 
   
   const [cards, setCards] = useState<Card[]>([]);
+  const [filteredCards, setFilteredCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(""); 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); 
@@ -65,11 +67,14 @@ export default function CollectionPage() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [targetUsername, setTargetUsername] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'price' | 'name'>('price');
 
   const isViewingOwn = !targetUserId;
   
   const handleCardClick = (cardId: string | number) => {
-    setSelectedCardId(String(cardId)); 
+    // Buscar la carta para obtener su tcgId
+    const card = filteredCards.find(c => c.id === String(cardId));
+    setSelectedCardId(card?.tcgId || String(cardId)); 
     setIsDetailModalOpen(true);
   };
   
@@ -94,7 +99,8 @@ export default function CollectionPage() {
       if (response.ok) {
         const data = await response.json();
         const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
-          id: c.id || c._id,
+          id: c._id,
+          tcgId: c.id, // Guardar el ID de la API de TCG
           name: c.name,
           imageUrl: fixImageUrl(c.image),
           category: c.category,
@@ -106,10 +112,66 @@ export default function CollectionPage() {
               || 0,
         }));
         setCards(mappedCards);
+        setFilteredCards(mappedCards);
       }
     } catch (err) {
       console.error("Error recargando:", err);
     }
+  };
+
+  // Función para manejar los filtros
+  const handleFiltersChange = (filters: any) => {
+    console.log('=== FILTROS APLICADOS (FRONTEND) ===');
+    console.log('Filtros recibidos:', filters);
+    
+    const params = new URLSearchParams();
+
+    if (filters.rarity?.length > 0)
+      params.append("rarity", filters.rarity.join(","));
+
+    if (filters.condition?.length > 0)
+      params.append("condition", filters.condition.join(","));
+
+    if (filters.cardType?.length > 0)
+      params.append("cardType", filters.cardType.join(","));
+
+    console.log('Query params:', params.toString());
+
+    // Si no hay filtros, mostrar todas las cartas
+    if (params.toString() === '') {
+      setFilteredCards(cards);
+      return;
+    }
+
+    // Llamar al endpoint de filtrado
+    const url = `/api/collection/filter?${params.toString()}`;
+    console.log('URL llamada:', url);
+    
+    fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Datos recibidos del backend:', data);
+        const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
+          id: c._id,
+          tcgId: c.id, // Guardar el ID de la API de TCG
+          name: c.name,
+          imageUrl: fixImageUrl(c.image),
+          category: c.category,
+          isTradable: c.isTradable || false,
+          condition: c.condition || 'Mint',
+          value: c.pricing?.cardmarket?.avgPrice
+            || c.pricing?.tcgplayer?.normal?.marketPrice
+            || c.pricing?.tcgplayer?.normal?.avgHoloPrice
+            || 0,
+        }));
+        setFilteredCards(mappedCards);
+      })
+      .catch(err => {
+        console.error('Error al filtrar:', err);
+      });
   };
 
   useEffect(() => {
@@ -133,8 +195,21 @@ export default function CollectionPage() {
         
         const data = await response.json();
         
+        console.log('=== DATOS RECIBIDOS DEL BACKEND ===');
+        console.log('Número de cartas:', data.length);
+        if (data.length > 0) {
+          console.log('Datos RAW de la primera carta:', JSON.stringify(data[0], null, 2));
+          console.log('Primera carta ejemplo:', {
+            _id: data[0]._id,
+            id: data[0].id,
+            name: data[0].name,
+            category: data[0].category
+          });
+        }
+        
         const mappedCards = (Array.isArray(data) ? data : []).map((c: ServerCard) => ({
-          id: c.id || c._id,
+          id: c._id,
+          tcgId: c.id, // Guardar el ID de la API de TCG
           name: c.name,
           imageUrl: fixImageUrl(c.image),
           category: c.category,
@@ -147,6 +222,7 @@ export default function CollectionPage() {
         }));
 
         setCards(mappedCards);
+        setFilteredCards(mappedCards);
         
         if (targetUserId) {
              fetchTargetUsername(targetUserId);
@@ -191,10 +267,12 @@ export default function CollectionPage() {
         throw new Error(errorData.message || 'Error al actualizar estado.');
       }
       
-      // Actualización optimista: Solo cambiamos el estado en la UI
-      setCards(prev => prev.map(c => 
-        c.id === idString ? { ...c, isTradable: !currentStatus } : c
-      ));
+      // Actualización optimista: Cambiamos el estado en ambos arrays
+      const updateCard = (c: Card) => 
+        c.id === idString ? { ...c, isTradable: !currentStatus } : c;
+      
+      setCards(prev => prev.map(updateCard));
+      setFilteredCards(prev => prev.map(updateCard));
 
     } catch (err: any) {
       console.error(err);
@@ -232,11 +310,18 @@ export default function CollectionPage() {
 
 
   const handleRemove = async (cardId: string | number) => {
-    // ... (lógica de borrado) ...
     if (!confirm("¿Eliminar carta de tu colección?")) return;
     const idString = String(cardId);
 
+    console.log('=== INTENTANDO ELIMINAR ===');
+    console.log('cardId recibido:', cardId);
+    console.log('idString:', idString);
+    
     const cardToDelete = cards.find(c => c.id === idString);
+    console.log('Carta encontrada en cards:', cardToDelete);
+    console.log('Total cartas en estado:', cards.length);
+    console.log('Todos los IDs:', cards.map(c => ({ id: c.id, name: c.name })));
+    
     const category = cardToDelete?.category || 'Pokemon';
 
     try {
@@ -246,19 +331,33 @@ export default function CollectionPage() {
         body: JSON.stringify({ category: category }) 
       });
 
-      if (!res.ok) throw new Error('Error al eliminar');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Error al eliminar');
+      }
       
+      // Eliminar de ambos arrays
       setCards(prev => prev.filter(c => c.id !== idString));
+      setFilteredCards(prev => prev.filter(c => c.id !== idString));
     } catch (err) {
       console.error(err);
-      alert("No se pudo eliminar. Revisa la consola.");
+      alert(`No se pudo eliminar. ${err instanceof Error ? err.message : 'Error desconocido'}`);
     }
   };
 
   if (loading) return <Loader />; // PRIMERA VERIFICACIÓN DE CARGA/ERROR
   if (error) return <NotFoundError />;
 
-  const totalValueCalculated = calculateTotalValue(cards);
+  // Ordenar las cartas filtradas
+  const sortedCards = [...filteredCards].sort((a, b) => {
+    if (sortBy === 'price') {
+      return b.value - a.value; // Mayor a menor
+    } else {
+      return (a.name || '').localeCompare(b.name || ''); // Alfabético
+    }
+  });
+
+  const totalValueCalculated = calculateTotalValue(filteredCards);
   
   const collectionTitle = isViewingOwn 
     ? 'Mi Colección' 
@@ -277,7 +376,11 @@ export default function CollectionPage() {
       <div className="flex flex-col md:flex-row gap-8 p-6 md:p-8 max-w-7xl mx-auto w-full">
         
         <aside className="w-full md:w-1/4 space-y-6">
-          <FilterSidebar totalValue={totalValueCalculated} totalCards={cards.length} />
+          <FilterSidebar 
+            totalValue={totalValueCalculated} 
+            totalCards={filteredCards.length}
+            onFiltersChange={handleFiltersChange}
+          />
         </aside>
 
         <main className="w-full md:w-3/4">
@@ -300,9 +403,34 @@ export default function CollectionPage() {
             )}
           </div>
 
-          {cards.length > 0 ? (
+          {/* Selector de ordenamiento */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-gray-400">Ordenar por:</span>
+            <button
+              onClick={() => setSortBy('price')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                sortBy === 'price'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Precio
+            </button>
+            <button
+              onClick={() => setSortBy('name')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                sortBy === 'name'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Nombre
+            </button>
+          </div>
+
+          {sortedCards.length > 0 ? (
             <CardGrid 
-              cards={cards} 
+              cards={sortedCards} 
               onRemove={isViewingOwn ? handleRemove : undefined}
               onCardClick={handleCardClick}
               // PASAMOS EL HANDLER DEL TOGGLE SOLO SI ES PROPIA
@@ -312,9 +440,11 @@ export default function CollectionPage() {
             <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/30">
               <span className="text-4xl mb-4">📭</span>
               <p className="text-gray-300">
-                {isViewingOwn ? 'Tu colección está vacía.' : 'Este usuario aún no tiene cartas.'}
+                {cards.length === 0
+                  ? (isViewingOwn ? 'Tu colección está vacía.' : 'Este usuario aún no tiene cartas.')
+                  : 'No hay cartas que coincidan con los filtros seleccionados.'}
               </p>
-              {isViewingOwn && (
+              {isViewingOwn && cards.length === 0 && (
                 <button 
                   onClick={() => setIsAddModalOpen(true)}
                   className="mt-4 text-blue-400 hover:underline"

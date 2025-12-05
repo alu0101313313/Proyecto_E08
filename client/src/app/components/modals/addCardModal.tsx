@@ -77,8 +77,22 @@ export default function AddCardModal({ isOpen, onClose, onAdd }: AddCardModalPro
   const handleFinalAdd = async () => {
     if (!selectedCard) return;
 
+    // Log para debug - ver qué categoría estamos enviando
+    console.log('📤 Enviando carta al backend:', {
+      id: selectedCard.id,
+      name: selectedCard.name,
+      category: selectedCard.category,
+      categoryFallback: selectedCard.category || 'Pokemon'
+    });
+
     setIsAdding(selectedCard.id);
-    await onAdd(selectedCard.id, selectedCard.category || 'Pokemon', condition, isTradable);
+    // Si no hay categoría, mejor no enviar nada y dejar que el backend la obtenga de la API
+    await onAdd(
+      selectedCard.id, 
+      selectedCard.category || '', // Enviar string vacío en lugar de 'Pokemon'
+      condition, 
+      isTradable
+    );
     setIsAdding(null);
     setSelectedCard(null); // Limpiamos la vista tras añadir
     setSearchTerm('');

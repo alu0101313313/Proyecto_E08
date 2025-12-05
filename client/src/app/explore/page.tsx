@@ -41,7 +41,7 @@ export default function ExplorePage() {
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
       <AppHeader />
 
-      <main className="flex-grow w-full max-w-4xl mx-auto p-6 md:p-12">
+      <main className="grow w-full max-w-4xl mx-auto p-6 md:p-12">
         
         {/* Cabecera */}
         <div className="text-center mb-10">

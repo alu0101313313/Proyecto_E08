@@ -4,7 +4,11 @@ import React, { useState } from 'react';
 interface FilterSidebarProps {
   totalValue: string;
   totalCards: number;
-  onFiltersChange?: (cards: any[]) => void; // <- para devolver las cartas filtradas al padre
+  onFiltersChange?: (filters: {
+    rarity: string[];
+    condition: string[];
+    cardType: string[];
+  }) => void;
 }
 
 export default function FilterSidebar({ totalValue, totalCards, onFiltersChange }: FilterSidebarProps) {
@@ -54,30 +58,37 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
   };
 
   // ===========================
-  // Llamada al backend GET /collection/filter
+  // Aplicar filtros
   // ===========================
-  const applyFilters = async () => {
-    const params = new URLSearchParams();
+  const applyFilters = () => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        rarity: selectedFilters.rarity,
+        condition: selectedFilters.condition,
+        cardType: selectedFilters.cardType,
+      });
+    }
+  };
 
-    if (selectedFilters.edition.length > 0)
-      params.append("edition", selectedFilters.edition.join(","));
-
-    if (selectedFilters.rarity.length > 0)
-      params.append("rarity", selectedFilters.rarity.join(","));
-
-    if (selectedFilters.condition.length > 0)
-      params.append("condition", selectedFilters.condition.join(","));
-
-    if (selectedFilters.cardType.length > 0)
-      params.append("cardType", selectedFilters.cardType.join(","));
-
-    const response = await fetch(`/api/collection/filter?${params.toString()}`, {
-      method: "GET",
-      credentials: "include",
+  // ===========================
+  // Limpiar filtros
+  // ===========================
+  const clearFilters = () => {
+    setSelectedFilters({
+      edition: [],
+      rarity: [],
+      condition: [],
+      cardType: [],
     });
-
-    const cards = await response.json();
-    onFiltersChange?.(cards);
+    
+    // Notificar al padre que no hay filtros
+    if (onFiltersChange) {
+      onFiltersChange({
+        rarity: [],
+        condition: [],
+        cardType: [],
+      });
+    }
   };
 
 
@@ -86,14 +97,23 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
   // ===========================
   return (
     <div className="bg-gray-800 p-4 rounded-lg">
-      <h2 className="text-white text-lg font-semibold mb-4 flex justify-between">
+      <h2 className="text-white text-lg font-semibold mb-4 flex justify-between items-center gap-2">
         Filtros
-        <button
-          onClick={applyFilters}
-          className="bg-blue-500 px-3 py-1 rounded text-white text-sm hover:bg-blue-600"
-        >
-          Aplicar
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={clearFilters}
+            className="bg-gray-600 px-3 py-1 rounded text-white text-sm hover:bg-gray-500"
+            title="Limpiar filtros"
+          >
+            Limpiar
+          </button>
+          <button
+            onClick={applyFilters}
+            className="bg-blue-500 px-3 py-1 rounded text-white text-sm hover:bg-blue-600"
+          >
+            Aplicar
+          </button>
+        </div>
       </h2>
 
 
@@ -105,6 +125,11 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
       >
         <h3 className={`text-md font-medium ${openFilter.rareza ? 'text-white' : 'text-gray-400'}`}>
           Rareza
+          {selectedFilters.rarity.length > 0 && (
+            <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {selectedFilters.rarity.length}
+            </span>
+          )}
         </h3>
         <span className={`text-gray-500 text-xl transition-transform ${openFilter.rareza ? 'rotate-90' : ''}`}>
           {'>'}
@@ -112,7 +137,7 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
       </div>
 
       {openFilter.rareza && (
-        <div className="mt-2 pl-4 text-gray-400 space-y-1">
+        <div className="mt-2 space-y-1">
           {[
             "Common",
             "Uncommon",
@@ -124,17 +149,31 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
             "Rare Hiper",
             "Reverse Holo",
             "Promo",
-          ].map((ra) => (
-            <p
-              key={ra}
-              onClick={() => toggleOption("rarity", ra)}
-              className={`text-sm cursor-pointer hover:text-white ${
-                selectedFilters.rarity.includes(ra) ? "text-white" : ""
-              }`}
-            >
-              {ra}
-            </p>
-          ))}
+          ].map((ra) => {
+            const isSelected = selectedFilters.rarity.includes(ra);
+            return (
+              <div
+                key={ra}
+                onClick={() => toggleOption("rarity", ra)}
+                className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer transition-all ${
+                  isSelected 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                <div className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
+                  isSelected ? "border-white bg-white" : "border-gray-400"
+                }`}>
+                  {isSelected && (
+                    <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm">{ra}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -148,6 +187,11 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
       >
         <h3 className={`text-md font-medium ${openFilter.condicion ? 'text-white' : 'text-gray-400'}`}>
           Condición
+          {selectedFilters.condition.length > 0 && (
+            <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {selectedFilters.condition.length}
+            </span>
+          )}
         </h3>
         <span className={`text-gray-500 text-xl transition-transform ${openFilter.condicion ? 'rotate-90' : ''}`}>
           {'>'}
@@ -155,26 +199,40 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
       </div>
 
       {openFilter.condicion && (
-        <div className="mt-2 pl-4 text-gray-400 space-y-1">
+        <div className="mt-2 space-y-1">
           {[
             "Mint",
             "Near Mint",
             "Excellent",
             "Good",
-            "Lightly Played",
+            "Light Played",
             "Played",
             "Poor",
-          ].map((co) => (
-            <p
-              key={co}
-              onClick={() => toggleOption("condition", co)}
-              className={`text-sm cursor-pointer hover:text-white ${
-                selectedFilters.condition.includes(co) ? "text-white" : ""
-              }`}
-            >
-              {co}
-            </p>
-          ))}
+          ].map((co) => {
+            const isSelected = selectedFilters.condition.includes(co);
+            return (
+              <div
+                key={co}
+                onClick={() => toggleOption("condition", co)}
+                className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer transition-all ${
+                  isSelected 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                <div className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
+                  isSelected ? "border-white bg-white" : "border-gray-400"
+                }`}>
+                  {isSelected && (
+                    <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm">{co}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -188,6 +246,11 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
       >
         <h3 className={`text-md font-medium ${openFilter.tipo ? 'text-white' : 'text-gray-400'}`}>
           Tipo
+          {selectedFilters.cardType.length > 0 && (
+            <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {selectedFilters.cardType.length}
+            </span>
+          )}
         </h3>
         <span className={`text-gray-500 text-xl transition-transform ${openFilter.tipo ? 'rotate-90' : ''}`}>
           {'>'}
@@ -195,18 +258,32 @@ export default function FilterSidebar({ totalValue, totalCards, onFiltersChange 
       </div>
 
       {openFilter.tipo && (
-        <div className="mt-2 pl-4 text-gray-400 space-y-1">
-          {["Pokemon", "Trainer", "Energy"].map((tp) => (
-            <p
-              key={tp}
-              onClick={() => toggleOption("cardType", tp)}
-              className={`text-sm cursor-pointer hover:text-white ${
-                selectedFilters.cardType.includes(tp) ? "text-white" : ""
-              }`}
-            >
-              {tp}
-            </p>
-          ))}
+        <div className="mt-2 space-y-1">
+          {["Pokemon", "Trainer", "Energy"].map((tp) => {
+            const isSelected = selectedFilters.cardType.includes(tp);
+            return (
+              <div
+                key={tp}
+                onClick={() => toggleOption("cardType", tp)}
+                className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer transition-all ${
+                  isSelected 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                <div className={`w-4 h-4 border-2 rounded flex items-center justify-center ${
+                  isSelected ? "border-white bg-white" : "border-gray-400"
+                }`}>
+                  {isSelected && (
+                    <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm">{tp}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 

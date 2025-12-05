@@ -16,12 +16,14 @@ interface Owner {
 
 interface SearchResult {
   _id: string;
+  tcgdexId?: string;
   name: string;
   image?: string;
   rarity?: string;
   owner: Owner; // <-- Esto viene gracias al .populate() del backend
   category: string;
   condition?: string;
+  isTradable?: boolean;
 }
 
 export default function OwnersSearchPage() {
@@ -35,6 +37,42 @@ export default function OwnersSearchPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
 
+  const handleSelectForTrade = (item: SearchResult) => {
+    try {
+      if (!item.isTradable) {
+        alert('Esta carta no está marcada como intercambiable.');
+        if (item.owner?._id) {
+          router.push(`/user/${item.owner._id}`);
+        }
+        return;
+      }
+
+      const payload = {
+        cardId: item._id,
+        tcgdexId: item.tcgdexId,
+        name: item.name,
+        image: item.image,
+        category: item.category,
+        condition: item.condition,
+        rarity: item.rarity,
+        isTradable: item.isTradable,
+        owner: item.owner
+      };
+
+      try {
+        sessionStorage.setItem('trade_theirCard', JSON.stringify(payload));
+      } catch (storageError) {
+        console.error('Error guardando en sessionStorage:', storageError);
+        alert('Error al preparar el intercambio');
+        return;
+      }
+
+      router.push('/trades');
+    } catch (e) {
+      console.error('Error preparando trade:', e);
+      alert('Error inesperado');
+    }
+  };
   // Devuelve clases CSS según el estado/condición de la carta
   const getConditionClasses = (cond?: string) => {
     const c = (cond || 'Mint').toString().trim();
@@ -82,6 +120,7 @@ export default function OwnersSearchPage() {
           return d;
         }
       } catch (e) {
+
         // no hacemos nada si no está logueado
       }
       return null;
@@ -110,7 +149,7 @@ export default function OwnersSearchPage() {
 
         if (!res.ok) throw new Error('Error al buscar cartas');
 
-        const data = await res.json();
+        const data: SearchResult[] = await res.json();
         // Excluir cartas del usuario que realiza la búsqueda (por id o por username)
         const filtered = data.filter((item: any) => {
           if (!item.owner) return false;
@@ -135,7 +174,7 @@ export default function OwnersSearchPage() {
       await fetchMe();
       await fetchOwners();
     })();
-  }, [query, router]);
+  }, [currentUserId, currentUsername, query, router]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
@@ -173,8 +212,12 @@ export default function OwnersSearchPage() {
             >
               
               {/* 1. La Carta */}
-              <div className="relative w-24 flex-shrink-0">
-                <div className="relative aspect-[2.5/3.5] w-full">
+              <div className="relative w-24 shrink-0">
+                <div 
+                  role="button"
+                  aria-label={`Seleccionar ${item.name} para intercambio`}
+                  onClick={() => handleSelectForTrade(item)}
+                  className="relative aspect-[2.5/3.5] w-full overflow-hidden rounded-lg cursor-pointer">
                     <Image 
                         src={fixImageUrl(item.image)}
                         alt={item.name}
@@ -191,15 +234,23 @@ export default function OwnersSearchPage() {
                 <div className="space-y-2">
                   <h3 className="text-white font-bold truncate text-lg" title={item.name}>{item.name}</h3>
                   
+                  {/* Fila 1: Categoría/Rareza y Condición */}
                   <div className="flex flex-wrap gap-2">
                     {/* Categoría/Rareza */}
                     <span className="text-xs text-gray-400 bg-gray-900 px-2 py-1 rounded border border-gray-700">
                         {item.rarity || item.category}
                     </span>
 
-                    {/* 3. AÑADIDO: ESTADO DE LA CARTA */}
+                    {/* Estado de la carta */}
                     <span className={`text-xs px-2 py-1 rounded border font-medium ${getConditionClasses(item.condition)}`}>
                       {item.condition || 'Mint'}
+                    </span>
+                  </div>
+                  
+                  {/* Fila 2: Indicador de Intercambiable (siempre en su propia línea) */}
+                  <div>
+                    <span className={`inline-block text-xs px-2 py-1 rounded border font-medium ${item.isTradable ? 'bg-green-700/50 text-green-300 border-green-800' : 'bg-red-700/50 text-red-300 border-red-800'}`}>
+                      {item.isTradable ? 'Intercambiable' : 'No Intercambiable'}
                     </span>
                   </div>
                 </div>

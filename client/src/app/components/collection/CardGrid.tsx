@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 
 interface CardGridProps {
@@ -22,45 +21,12 @@ interface Card {
 
 
 export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradable }: CardGridProps) {
-  const [sortBy, setSortBy] = useState<'price' | 'name'>('price');
-
-  const sortedCards = cards ? [...cards].sort((a, b) => {
-    if (sortBy === 'price') {
-      return (b.value ?? 0) - (a.value ?? 0);
-    } else {
-      return (a.name ?? '').localeCompare(b.name ?? '');
-    }
-  }) : [];
-
   return (
     <div className="bg-gray-800 p-4 rounded-lg text-white">
-      { /* Cabecera (titulo y ordenacion) */ }
-      <div className="text-xl justify-between items-center mb-6 flex">
-        
-        {/* Selector de ordenación */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">Ordenar por:</span>
-          <button 
-            onClick={() => setSortBy('price')} 
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              sortBy === 'price' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'
-            }`}>
-            Precio
-          </button>
-          <button
-            onClick={() => setSortBy('name')}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              sortBy === 'name' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'
-            }`}>
-            Nombre
-          </button>
-        </div>
-      </div>
-      
       { /* Cuadrícula de cartas */ }
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {sortedCards.length > 0 ? (
-          sortedCards.map((card) => (
+        {cards.length > 0 ? (
+          cards.map((card) => (
             <div key={card.id} className="relative group p-2 bg-gray-700/30 rounded-xl shadow-lg hover:shadow-blue-500/20 transition-all duration-200 border border-gray-700"> 
               
               {/* Imagen y Click */}
