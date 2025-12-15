@@ -1,7 +1,6 @@
 import { model, Schema } from 'mongoose';
 import type { ITrade } from '../interface/ITrade';
 import { StatusTrade } from '../enums/enumStatusTrade';
-
 /**
  * Mongoose schema and model for the Trade entity.
  * 
@@ -24,5 +23,4 @@ const tradeSchema = new Schema<ITrade>({
   user1AproxValue: { type: Number, default: 0.00 },
   user2AproxValue: { type: Number, default: 0.00 },
 }, { timestamps: true });
-
 export const Trade = model<ITrade>('Trade', tradeSchema);

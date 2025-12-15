@@ -1,7 +1,6 @@
 import { model, Schema } from "mongoose";
 import type { IEnergyCard } from "../../interface/cards/IEnergyCard.js";
 import { TypeConditionCard } from "../../enums/enumConditionCard.js";
-
 /**
  * Esquema de Mongoose para la entidad EnergyCard
  * 
@@ -62,7 +61,6 @@ const energyCardSchema = new Schema<IEnergyCard>({
     },
   }
 })
-
 /**
  * Modelo de Mongoose para la entidad EnergyCard
  */

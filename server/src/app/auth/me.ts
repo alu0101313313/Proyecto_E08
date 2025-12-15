@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-
 /**
  * @desc    Obtener datos del usuario actual
  * @route   GET /api/auth/me
@@ -9,7 +8,6 @@ import asyncHandler from 'express-async-handler';
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
   // req.user ya está relleno gracias al middleware 'protect' que usaremos en la ruta
   const user = req.user;
-
   if (user) {
     res.status(200).json({
       _id: user._id,

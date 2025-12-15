@@ -1,6 +1,5 @@
 import { model, Schema } from 'mongoose';
 import type { ISet } from '../interface/ISets.js';
-
 /**
  * Mongoose schema and model for the Set entity.
  * 
@@ -35,5 +34,4 @@ const setSchema = new Schema<ISet>({
     expanded: { type: Boolean },
   },
 });
-
 export const Sets = model<ISet>('Set', setSchema);

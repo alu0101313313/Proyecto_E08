@@ -1,19 +1,17 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Loader from '../ui/loader';
 import NotFoundError from '../ui/notfoundError';
-
 // Icono de cerrar
 const CloseIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
-
 interface Card {
   _id: string;
+  tcgdexId?: string;
   name: string;
   image?: string;
   condition?: string;
@@ -21,14 +19,12 @@ interface Card {
   isTradable?: boolean;
   category?: string;
 }
-
 interface AddCardFromCollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCard: (card: Card) => void;
   selectedCardIds?: Set<string>;
 }
-
 export default function AddCardFromCollectionModal({ 
   isOpen, 
   onClose, 
@@ -39,11 +35,9 @@ export default function AddCardFromCollectionModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
-
   // Cargar las cartas de la colección del usuario
   useEffect(() => {
     if (!isOpen) return;
-
     const fetchCollectionCards = async () => {
       setLoading(true);
       setError('');
@@ -51,7 +45,6 @@ export default function AddCardFromCollectionModal({
         const response = await fetch('/api/collection', {
           credentials: 'include'
         });
-
         if (response.ok) {
           const data = await response.json();
           // Filtrar solo las cartas marcadas como intercambiables y que no estén ya seleccionadas
@@ -69,10 +62,8 @@ export default function AddCardFromCollectionModal({
         setLoading(false);
       }
     };
-
     fetchCollectionCards();
   }, [isOpen, selectedCardIds]);
-
   const handleSelectCard = (card: Card) => {
     setSelectedCards(prev => {
       const newSet = new Set(prev);
@@ -84,24 +75,20 @@ export default function AddCardFromCollectionModal({
       return newSet;
     });
   };
-
   const handleAddSelectedCards = () => {
     const cardsToAdd = cards.filter(card => selectedCards.has(card._id));
     cardsToAdd.forEach(card => onSelectCard(card));
     setSelectedCards(new Set());
     onClose();
   };
-
   const fixImageUrl = (url?: string) => {
     if (!url) return '/placeholder.png';
-    
     if (url.includes('assets.tcgdex.net')) {
       if (url.endsWith('/high.png') || url.endsWith('/low.png')) return url;
       return `${url}/high.png`;
     }
     return url;
   };
-
   const getConditionClasses = (cond?: string) => {
     const c = (cond || 'Mint').toString().trim();
     return c === 'Mint'
@@ -120,9 +107,7 @@ export default function AddCardFromCollectionModal({
       ? 'bg-red-700/50 text-red-300 border-red-800'
       : 'bg-gray-700/50 text-gray-300 border-gray-700';
   };
-
   if (!isOpen) return null;
-
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto"
@@ -142,7 +127,6 @@ export default function AddCardFromCollectionModal({
             <CloseIcon />
           </button>
         </div>
-
         {/* Contenido */}
         <div className="overflow-y-auto flex-1 p-6">
           {loading ? (
@@ -178,7 +162,6 @@ export default function AddCardFromCollectionModal({
                       </svg>
                     </div>
                   )}
-
                   {/* Imagen */}
                   <div className="relative aspect-[2.5/3.5] w-full overflow-hidden rounded-lg">
                     <Image
@@ -189,7 +172,6 @@ export default function AddCardFromCollectionModal({
                       unoptimized
                     />
                   </div>
-
                   {/* Información */}
                   <div className="mt-2 text-center">
                     <p className="text-sm font-light text-gray-300 truncate">{card.name}</p>
@@ -204,7 +186,6 @@ export default function AddCardFromCollectionModal({
             </div>
           )}
         </div>
-
         {/* Footer con botones */}
         <div className="flex items-center justify-between gap-4 p-6 border-t border-gray-700 bg-gray-800/50">
           <p className="text-sm text-gray-400">

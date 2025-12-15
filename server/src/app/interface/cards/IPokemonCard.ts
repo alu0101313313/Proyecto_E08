@@ -8,7 +8,6 @@ import type { IUser } from "../IUsers.js";
 import type { Types } from "mongoose";
 import { Document } from "mongoose";
 import type { TypeConditionCard } from "../../enums/enumConditionCard.js";
-
 /**
  * Interfaz principal para el documento de PokemonCard.
  * 

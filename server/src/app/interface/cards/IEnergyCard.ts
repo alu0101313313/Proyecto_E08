@@ -7,7 +7,6 @@ import type { ISetBrief } from "../ISets.js";
 import type { IUser } from "../IUsers.js";
 import type { Types } from "mongoose";
 import { Document } from "mongoose";
-
 /**
  * Interfaz principal para el documento de EnergyCard.
  * 
@@ -50,6 +49,7 @@ export interface IEnergyCard extends Document {
   isTradable: boolean;
   category: TypeCard;
   energyType: TypeEnergy;
+  energyTypePokemon?: string[];
   effect: string;
   owner: Types.ObjectId | IUser; 
   pricing: {

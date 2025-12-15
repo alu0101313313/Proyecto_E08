@@ -1,23 +1,18 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-
 export default function ProfileCard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
   const [user, setUser] = useState({
     username: '',
     email: '',
     avatarUrl: '', 
   });
-
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(user);
-
   // Cargar datos al iniciar
   useEffect(() => {
     const fetchUserData = async () => {
@@ -43,12 +38,10 @@ export default function ProfileCard() {
     };
     fetchUserData();
   }, [router]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-
   // Guardar cambios
   const handleSave = async () => {
     setIsSaving(true);
@@ -61,9 +54,7 @@ export default function ProfileCard() {
           profileImageUrl: formData.avatarUrl
         }),
       });
-
       const data = await res.json();
-
       if (res.ok) {
         const updatedUser = {
             username: data.username,
@@ -84,7 +75,6 @@ export default function ProfileCard() {
       setIsSaving(false);
     }
   };
-
   // --- FUNCIÓN DE CERRAR SESIÓN (LOGOUT) ---
   const handleLogout = async () => {
     try {
@@ -96,12 +86,10 @@ export default function ProfileCard() {
       router.push('/login');
     }
   };
-
   const handleCancel = () => {
     setFormData(user); 
     setIsEditing(false);
   };
-
   if (isLoading) {
     return (
         <div className="text-white text-center p-8 animate-pulse">
@@ -109,10 +97,8 @@ export default function ProfileCard() {
         </div>
     );
   }
-
   return (
     <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-2xl text-white border border-gray-700 relative">
-      
       {/* Botón de Logout (Posicionado arriba a la derecha) */}
       {!isEditing && (
         <button
@@ -125,7 +111,6 @@ export default function ProfileCard() {
             Cerrar Sesión
         </button>
       )}
-
       <div className="flex flex-col md:flex-row items-center gap-8 mb-8 mt-4"> {/* mt-4 para dar espacio al botón de logout */}
         {/* Foto de Perfil */}
         <div className="relative group">
@@ -149,7 +134,6 @@ export default function ProfileCard() {
             </div>
           )}
         </div>
-
         {/* Info Usuario */}
         <div className="text-center md:text-left flex-1">
           <h2 className="text-3xl font-bold text-white mb-2">{user.username}</h2>
@@ -160,7 +144,6 @@ export default function ProfileCard() {
              </span>
           )}
         </div>
-
         {/* Botón Editar */}
         {!isEditing && (
           <button 
@@ -171,7 +154,6 @@ export default function ProfileCard() {
           </button>
         )}
       </div>
-
       <div className="space-y-6">
         {/* Input Username */}
         <div>
@@ -191,7 +173,6 @@ export default function ProfileCard() {
             `}
           />
         </div>
-
         {/* Input Avatar (Solo en edición) */}
         {isEditing && (
           <div>
@@ -206,7 +187,6 @@ export default function ProfileCard() {
             />
           </div>
         )}
-
         {/* Input Email */}
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1">Correo Electrónico</label>
@@ -218,7 +198,6 @@ export default function ProfileCard() {
           />
         </div>
       </div>
-
       {isEditing && (
         <div className="flex justify-end gap-4 mt-8 border-t border-gray-700 pt-6">
           <button 

@@ -1,0 +1,54 @@
+--- Comandos para instalar, arrancar y probar colección de cartas ---
+# 1) Instalar dependencias (server)
+cd server
+bun install
+# 2) Fichero .env (server/.env) - ejemplo
+MONGODB_URI="<TU_MONGODB_URI>"
+JWT_SECRET="<TU_JWT_SECRET>"
+PORT=5001
+# 3) Arrancar servidor con Bun (usa puerto 5001 para evitar conflictos macOS)
+cd server
+PORT=5001 bun src/server.ts
+# Si prefieres background (logs en server/server.log):
+cd server
+PORT=5001 nohup bun src/server.ts > server.log 2>&1 &
+# 4) Registrar usuario de prueba (si no existe)
+curl -4 -s -X POST http://127.0.0.1:5001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser01","email":"testuser01@example.com","password":"Test1234"}' \
+  -w "\nSTATUS:%{http_code}\n"
+# 5) Iniciar sesión y guardar cookie (guarda en /tmp/cookies.txt)
+curl -4 -s -X POST http://127.0.0.1:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"testuser01@example.com","password":"Test1234"}' \
+  -c /tmp/cookies.txt -w "\nSTATUS:%{http_code}\n"
+# 6) Comprobar colección (GET) con cookie
+curl -4 -s -b /tmp/cookies.txt http://127.0.0.1:5001/api/collection -w "\nSTATUS:%{http_code}\n"
+# 7) Añadir manualmente una carta a la colección (si conoces card _id)
+#    Reemplaza <CARD_ID> por el _id (ObjectId string) de la carta en la BD
+curl -4 -s -X POST http://127.0.0.1:5001/api/collection/add \
+  -H "Content-Type: application/json" \
+  -b /tmp/cookies.txt \
+  -d '{"cardId":"<CARD_ID>"}' -w "\nSTATUS:%{http_code}\n"
+# 8) Eliminar carta de la colección
+curl -4 -s -X DELETE http://127.0.0.1:5001/api/collection/<CARD_ID> -b /tmp/cookies.txt -w "\nSTATUS:%{http_code}\n"
+# 9) Generar JWT manualmente (si necesitas token sin login)
+node -e "console.log(require('jsonwebtoken').sign({ userId: 'USER_ID' }, 'TU_JWT_SECRET', { expiresIn: '7d' }))"
+# 10) Scripts de utilidad creados en el repo (server/scripts)
+# - Añadir carta de ejemplo y asociarla al usuario testuser01:
+node server/scripts/add_card_to_user.mjs
+# - Eliminar carta de prueba (busca name='Test Pokemon Card' o id que empiece 'local-'):
+node server/scripts/remove_test_card.mjs
+# 11) Frontend (client) - desarrollo Next.js
+# En el directorio client:
+cd client
+bun install
+bun dev
+# Nota: el componente de colección ya hace fetch a:
+# http://127.0.0.1:5001/api/collection (usa credentials: 'include')
+# Usar `NEXT_PUBLIC_API_URL` para configurar la URL del backend en distintos entornos:
+# Crea `client/.env.local` con el contenido (desarrollo):
+# NEXT_PUBLIC_API_URL="http://127.0.0.1:5001"
+# Next.js inyectará la variable en el build y el cliente la podrá leer como
+# `process.env.NEXT_PUBLIC_API_URL`.
+--- Fin de los comandos ---

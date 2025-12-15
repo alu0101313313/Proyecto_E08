@@ -1,31 +1,25 @@
-
 'use client';
-
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-
-
+import { useTranslations } from '@/hooks/useTranslations';
 // URL de la API (Asegúrate que apunta a 'register')
 const API_URL = 'http://localhost:3001/api/auth/register';
-
 export default function RegisterForm() {
-  
   // --- LÓGICA DE ESTADOS (Con 'username', 'email', 'password') ---
   const [username, setUsername] = useState(''); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(''); 
   const [error, setError] = useState(''); 
   const [loading, setLoading] = useState(false); 
-
+  const t = useTranslations();
   // --- LÓGICA handleSubmit (Adaptada para 3 campos) ---
   const handleSubmit = async (formE: React.FormEvent) => {
     formE.preventDefault();
     setError('');
     setLoading(true);
-
     if (!username || !email || !password) { 
-        setError("Todos los campos son obligatorios.");
+        setError(t('auth.allFieldsRequired'));
         setLoading(false);
         return;
     }
@@ -37,27 +31,23 @@ export default function RegisterForm() {
       });
       const data = await response.json(); 
       if (!response.ok) {
-        setError(data.message || 'Error en el registro. Inténtalo de nuevo.');
+        setError(data.message || t('auth.registerError'));
         return;
       }
-      alert('¡Registro exitoso! Ya puedes iniciar sesión.'); 
+      alert(t('auth.registerSuccess')); 
       // router.push('/login');
-    
     } catch (err) {
-      setError('No se pudo conectar con el servidor API.');
+      setError(t('auth.registerError'));
       console.error(err);
     } finally {
       setLoading(false); 
     }
   };
   // --- FIN DE LA LÓGICA ---
-
-
   // --- ESTRUCTURA JSX CON TAILWIND CSS ---
   return (
     // Contenedor de la "tarjeta"
     <div className="flex flex-col items-center p-8 bg-[#2c3138] rounded-xl w-full max-w-md shadow-lg text-white">
-      
       {/* Logo */}
       <Image 
         src="/logo.png" // Asume que 'logo.png' está en 'client/public/'
@@ -66,63 +56,55 @@ export default function RegisterForm() {
         height={300}
         className="mb-6"
       />
-
       {/* Pestañas de Navegación (Invertidas) */}
       <div className="flex gap-6 mb-6">
         <Link 
           href="/login" 
           className="text-gray-400 py-2 px-5 rounded-lg font-semibold hover:text-white"
         >
-          Iniciar Sesión
+          {t('auth.login')}
         </Link>
         <button 
           className="bg-blue-600 text-white py-2 px-5 rounded-lg font-semibold"
         >
-          Registrarse
+          {t('auth.register')}
         </button>
       </div>
-
       {/* Título */}
       <h1 className="text-white text-3xl font-bold mb-8">
-        Crea tu colección
+        {t('auth.register')}
       </h1>
-
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
-        
         {error && <p className="text-red-500 text-center text-sm mb-2">{error}</p>}
-
         {/* CAMPO NUEVO: Nombre de Usuario */}
         <input
           type="text"
-          placeholder="Nombre de Usuario"
+          placeholder={t('auth.username')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
           disabled={loading}
           className="bg-[#1e1f22] text-white p-3 rounded-md border border-gray-600 focus:outline-none focus:border-blue-500"
         />
-        
         <input
           type="email" // Cambiado a 'email' para validación de navegador
-          placeholder="Email"
+          placeholder={t('auth.email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={loading}
           className="bg-[#1e1f22] text-white p-3 rounded-md border border-gray-600 focus:outline-none focus:border-blue-500"
         />
-        
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder={t('auth.password')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           disabled={loading}
           className="bg-[#1e1f22] text-white p-3 rounded-md border border-gray-600 focus:outline-none focus:border-blue-500"
         />
-        
         {/* Botón "Fantasma" (con texto de Registro) */}
         <button 
           type="submit" 
@@ -140,7 +122,7 @@ export default function RegisterForm() {
             text-center
           "
         >
-          {loading ? 'Creando...' : 'Registrarse'}
+          {loading ? t('auth.creating') : t('auth.register')}
         </button>
       </form>
     </div>

@@ -5,23 +5,17 @@ import { loginUser } from './login.controller';
 import { getMe } from './me';
 import { updateProfile } from './updateProfile';
 import { protect } from '../middleware/authMiddleware';
-
 const router = Router();
-
 // Ruta para registrar un nuevo usuario
 // POST /api/auth/register
 router.post('/register', registerUser);
-
 // Ruta para iniciar sesión
 // POST /api/auth/login
 router.post('/login', loginUser);
-
 // Ruta para obtener datos del usuario actual
 // GET /api/auth/me
 router.get('/me', protect, getMe); 
-
 router.put('/me', protect, updateProfile);
-
 // Ruta para cerrar sesión
 // POST /api/auth/logout
 router.post('/logout', (req: Request, res: Response) => {
@@ -32,5 +26,4 @@ router.post('/logout', (req: Request, res: Response) => {
   });
   res.status(200).json({ message: 'Sesión cerrada exitosamente' });
 });
-
 export default router;

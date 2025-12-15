@@ -1,7 +1,6 @@
 'use client';
-
 import Image from 'next/image';
-
+import { useTranslations } from '@/hooks/useTranslations';
 interface CardGridProps {
   cards: Card[];
   onRemove?: (cardId: string | number) => Promise<void>;
@@ -9,7 +8,6 @@ interface CardGridProps {
   // Handler para el toggle (solo se usa si es colección propia)
   onToggleTradable?: (cardId: string, currentStatus: boolean) => Promise<void>; 
 }
-
 interface Card {
   id: string;
   name?: string;
@@ -18,9 +16,8 @@ interface Card {
   isTradable?: boolean; 
   condition?: string;
 }
-
-
 export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradable }: CardGridProps) {
+  const t = useTranslations();
   return (
     <div className="bg-gray-800 p-4 rounded-lg text-white">
       { /* Cuadrícula de cartas */ }
@@ -28,7 +25,6 @@ export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradabl
         {cards.length > 0 ? (
           cards.map((card) => (
             <div key={card.id} className="relative group p-2 bg-gray-700/30 rounded-xl shadow-lg hover:shadow-blue-500/20 transition-all duration-200 border border-gray-700"> 
-              
               {/* Imagen y Click */}
               <div 
                 className="cursor-pointer"
@@ -51,7 +47,6 @@ export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradabl
               </div>
               {/* Controles de Estado y Trading */}
               <div className="mt-3 space-y-1">
-                
                 {/* 1. Condición (Solo Lectura) */}
                 <div
                   className={`px-2 py-1 text-xs font-medium rounded-full text-center ${
@@ -72,9 +67,8 @@ export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradabl
                     : 'bg-gray-700/50 text-gray-300'
                   }`}
                 >
-                  {card.condition || 'Mint'}
+                  {t(`collection.conditions.${card.condition}`, card.condition || 'Mint')}
                 </div>
-
                 {/* 2. TOGGLE DE INTERCAMBIO (Botón) */}
                 {onToggleTradable && (
                     <button
@@ -92,10 +86,9 @@ export default function CardGrid({ cards, onRemove, onCardClick, onToggleTradabl
                             : 'bg-gray-600 border-gray-700 text-gray-300 hover:bg-gray-500'
                         }`}
                     >
-                        {card.isTradable ? '✅ Tradeable' : '❌ Non tradeable'}
+                        {card.isTradable ? `✅ ${t('collection.tradable')}` : `❌ ${t('collection.notTradable')}`}
                     </button>
                 )}
-
                 {/* 3. Botón de Eliminar */}
                 {onRemove && (
                   <button

@@ -1,7 +1,6 @@
 import type { Document } from "mongoose";
 import type { ICardBrief } from "./cards/Icard.js";
 import type { ISeriesBrief } from "./ISeries.js";
-
 /**
  * Interfaz principal para el documento de Set.
  * 
@@ -35,7 +34,6 @@ export interface ISet extends Document {
     expanded: boolean;
   }
 }
-
 /**
  * Interfaz breve para representar un set
  * 

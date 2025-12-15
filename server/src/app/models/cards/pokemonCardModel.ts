@@ -1,7 +1,6 @@
 import { model, Schema } from 'mongoose';
 import type { IPokemonCard } from '../../interface/cards/IPokemonCard.js';
 import { TypeConditionCard } from '../../enums/enumConditionCard.js';
-
 /**
  * Esquema de Mongoose para la entidad PokemonCard
  * 
@@ -85,7 +84,6 @@ const pokemonCardSchema = new Schema<IPokemonCard>({
     index: true 
   }
 });
-
 /**
  * Modelo de Mongoose para la entidad PokemonCard
  */

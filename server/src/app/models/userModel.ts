@@ -1,7 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import type { IUser } from '../interface/IUsers';
-
 /**
  * Schema para las cartas dentro de la colección de un usuario.
  */
@@ -35,8 +34,6 @@ import type { IUser } from '../interface/IUsers';
 //     default: Date.now
 //   }
 // });
-
-
 /**
  * Schema principal para el modelo de Usuario.
  * @username Nombre de usuario único.
@@ -95,9 +92,7 @@ const userSchema = new Schema({
   // createdAt y updatedAt
   timestamps: true
 });
-
 // moongose pre-save
-
 /**
  * middleware "pre-save" para hashear la contraseña antes de guardarla.
  * solo si la contraseña ha sido modificada.
@@ -106,7 +101,6 @@ userSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
-
   // hashear la contraseña
   try {
     const salt = await bcrypt.genSalt(10);
@@ -116,7 +110,6 @@ userSchema.pre<IUser>('save', async function (next) {
     next(error);
   }
 });
-
 /**
  * metodo para comparar la contraseña introducida con la hasheada en la BD.
  * @param candidatePassword la contraseña en texto plano para comparar.
@@ -125,10 +118,8 @@ userSchema.pre<IUser>('save', async function (next) {
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
-
 /**
  * creamos y exportamos el modelo 'User' basado en el userSchema.
  */
 const User = model<IUser>('User', userSchema);
-
 export default User;

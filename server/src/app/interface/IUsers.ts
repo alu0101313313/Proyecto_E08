@@ -1,5 +1,4 @@
 import { Document, Types } from 'mongoose';
-
 // /**
 //  *
 //  * Representa una notificación para el usuario.
@@ -12,8 +11,6 @@ import { Document, Types } from 'mongoose';
 //   isRead: boolean;
 //   createdAt: Date;
 // }
-
-
 /**
  * Interfaz principal para el documento de Usuario.
  * 
@@ -30,19 +27,14 @@ export interface IUser extends Document {
   email: string;
   password: string; 
   profileImageUrl?: string;
-  
   // cada id referencia un documento en la colección 'cards'
   cardCollection: Types.ObjectId[];
-  
   // Array de IDs de cartas que el usuario desea
   wishlist: string[]; // Solo los cardId
-  
   // Referencias a los intercambios en los que participa el usuario
   trades: Types.ObjectId[];
-  
   // notifications se podria implementar más adelante? * no se como implementarlo bien *
   // notifications: INotification[];
-
   // metodo para comparar contraseñas
   comparePassword(candidatePassword: string): Promise<boolean>;
 }

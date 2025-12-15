@@ -1,5 +1,4 @@
 import { Document } from "mongoose";
-
 /**
  * Interfaz breve para representar una carta.
  * 

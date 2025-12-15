@@ -2,8 +2,6 @@ import {Document} from 'mongoose';
 import type { StatusTrade } from '../enums/enumStatusTrade';
 import type { IUser } from './IUsers';
 import type { ICardBrief } from './cards/Icard';
-
-
 /**
  * Interfaz principal para el documento de Intercambio.
  * 

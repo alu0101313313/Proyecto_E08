@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-
 const NotFoundError = () => {
   return (
     <StyledWrapper>
@@ -64,10 +63,8 @@ const NotFoundError = () => {
     </StyledWrapper>
   );
 }
-
 const StyledWrapper = styled.div`
   /* From Uiverse.io by Praashoo7 Design Inspired by Stefan Devai's Design on Dribble */
-
   .text_404 {
     position: absolute;
     display: flex;
@@ -80,19 +77,15 @@ const StyledWrapper = styled.div`
     opacity: 0.5;
     font-family: Montserrat;
   }
-
   .text_4041 {
     transform: scaleY(24.5) scaleX(9);
   }
-
   .text_4042 {
     transform: scaleY(24.5) scaleX(9);
   }
-
   .text_4043 {
     transform: scaleY(24.5) scaleX(9);
   }
-
   .main_wrapper {
     display: flex;
     align-items: center;
@@ -100,7 +93,6 @@ const StyledWrapper = styled.div`
     width: 30em;
     height: 30em;
   }
-
   .main {
     display: flex;
     flex-direction: column;
@@ -108,7 +100,6 @@ const StyledWrapper = styled.div`
     justify-content: center;
     margin-top: 5em;
   }
-
   .antenna {
     width: 5em;
     height: 5em;
@@ -119,7 +110,6 @@ const StyledWrapper = styled.div`
     margin-left: 0em;
     z-index: -1;
   }
-
   .antenna_shadow {
     position: absolute;
     background-color: transparent;
@@ -136,7 +126,6 @@ const StyledWrapper = styled.div`
       inset 0px 16px #a85103,
       inset 0px 16px 1px 1px #a85103;
   }
-
   .antenna::after {
     content: "";
     position: absolute;
@@ -148,7 +137,6 @@ const StyledWrapper = styled.div`
     border-radius: 50%;
     background-color: #f69e50;
   }
-
   .antenna::before {
     content: "";
     position: absolute;
@@ -160,7 +148,6 @@ const StyledWrapper = styled.div`
     border-radius: 50%;
     background-color: #f69e50;
   }
-
   .a1 {
     position: relative;
     top: -102%;
@@ -178,7 +165,6 @@ const StyledWrapper = styled.div`
     transform: rotate(-29deg);
     clip-path: polygon(50% 0%, 49% 100%, 52% 100%);
   }
-
   .a1d {
     position: relative;
     top: -211%;
@@ -191,7 +177,6 @@ const StyledWrapper = styled.div`
     background-color: #979797;
     z-index: 99;
   }
-
   .a2 {
     position: relative;
     top: -210%;
@@ -220,7 +205,6 @@ const StyledWrapper = styled.div`
     );
     transform: rotate(-8deg);
   }
-
   .a2d {
     position: relative;
     top: -294%;
@@ -232,7 +216,6 @@ const StyledWrapper = styled.div`
     background-color: #979797;
     z-index: 99;
   }
-
   .tv {
     width: 17em;
     height: 9em;
@@ -244,7 +227,6 @@ const StyledWrapper = styled.div`
     border: 2px solid #1d0e01;
     box-shadow: inset 0.2em 0.2em #e69635;
   }
-
   .tv::after {
     content: "";
     position: absolute;
@@ -259,7 +241,6 @@ const StyledWrapper = styled.div`
     background-blend-mode: difference;
     opacity: 0.09;
   }
-
   .curve_svg {
     position: absolute;
     margin-top: 0.25em;
@@ -267,7 +248,6 @@ const StyledWrapper = styled.div`
     height: 12px;
     width: 12px;
   }
-
   .display_div {
     display: flex;
     align-items: center;
@@ -276,13 +256,11 @@ const StyledWrapper = styled.div`
     border-radius: 15px;
     box-shadow: 3.5px 3.5px 0px #e69635;
   }
-
   .screen_out {
     width: auto;
     height: auto;
     border-radius: 10px;
   }
-
   .screen_out1 {
     width: 11em;
     height: 7.75em;
@@ -291,7 +269,6 @@ const StyledWrapper = styled.div`
     justify-content: center;
     border-radius: 10px;
   }
-
   .screenM {
     width: 13em;
     height: 7.85em;
@@ -326,7 +303,6 @@ const StyledWrapper = styled.div`
     text-align: center;
     overflow: hidden;
   }
-
   .screenM:before,
   .screenM:after {
     content: "";
@@ -335,7 +311,6 @@ const StyledWrapper = styled.div`
     z-index: 1;
     width: 100%;
   }
-
   .screenM:before {
     top: 0;
     height: 68.4782608696%;
@@ -357,7 +332,6 @@ const StyledWrapper = styled.div`
       #002bb2 100%
     );
   }
-
   .screenM:after {
     bottom: 0;
     height: 21.7391304348%;
@@ -377,7 +351,6 @@ const StyledWrapper = styled.div`
       #303030 100%
     );
   }
-
   .notfound_text {
     background-color: black;
     padding-left: 0.3em;
@@ -388,13 +361,11 @@ const StyledWrapper = styled.div`
     border-radius: 5px;
     z-index: 10;
   }
-
   .lines {
     display: flex;
     column-gap: 0.1em;
     align-self: flex-end;
   }
-
   .line1,
   .line3 {
     width: 2px;
@@ -403,7 +374,6 @@ const StyledWrapper = styled.div`
     border-radius: 25px 25px 0px 0px;
     margin-top: 0.5em;
   }
-
   .line2 {
     flex-grow: 1;
     width: 2px;
@@ -411,7 +381,6 @@ const StyledWrapper = styled.div`
     background-color: black;
     border-radius: 25px 25px 0px 0px;
   }
-
   .buttons_div {
     width: 4.25em;
     align-self: center;
@@ -427,7 +396,6 @@ const StyledWrapper = styled.div`
     row-gap: 0.75em;
     box-shadow: 3px 3px 0px #e69635;
   }
-
   .b1,
   .b2 {
     width: 1.65em;
@@ -440,7 +408,6 @@ const StyledWrapper = styled.div`
       -2px 0px #513721,
       -2px 0px 0px 1px black;
   }
-
   .b1::before {
     content: "";
     position: absolute;
@@ -452,7 +419,6 @@ const StyledWrapper = styled.div`
     height: 0.4em;
     background-color: #000000;
   }
-
   .b1::after {
     content: "";
     position: absolute;
@@ -464,7 +430,6 @@ const StyledWrapper = styled.div`
     height: 0.55em;
     background-color: #000000;
   }
-
   .b1 div {
     content: "";
     position: absolute;
@@ -475,7 +440,6 @@ const StyledWrapper = styled.div`
     height: 1.5em;
     background-color: #000000;
   }
-
   .b2::before {
     content: "";
     position: absolute;
@@ -487,7 +451,6 @@ const StyledWrapper = styled.div`
     height: 0.4em;
     background-color: #000000;
   }
-
   .b2::after {
     content: "";
     position: absolute;
@@ -498,18 +461,15 @@ const StyledWrapper = styled.div`
     height: 1.5em;
     background-color: #000000;
   }
-
   .speakers {
     display: flex;
     flex-direction: column;
     row-gap: 0.5em;
   }
-
   .speakers .g1 {
     display: flex;
     column-gap: 0.25em;
   }
-
   .speakers .g11,
   .g12,
   .g13 {
@@ -520,13 +480,11 @@ const StyledWrapper = styled.div`
     border: 2px solid black;
     box-shadow: inset 1.25px 1.25px 1px #b49577;
   }
-
   .speakers .g {
     width: auto;
     height: 2px;
     background-color: #171717;
   }
-
   .bottom {
     width: 100%;
     height: auto;
@@ -535,7 +493,6 @@ const StyledWrapper = styled.div`
     justify-content: center;
     column-gap: 8.7em;
   }
-
   .base1,
   .base2 {
     height: 1em;
@@ -545,7 +502,6 @@ const StyledWrapper = styled.div`
     margin-top: -0.15em;
     z-index: -1;
   }
-
   .base3 {
     position: absolute;
     height: 0.15em;
@@ -553,5 +509,4 @@ const StyledWrapper = styled.div`
     background-color: #171717;
     margin-top: 0.8em;
   }`;
-
 export default NotFoundError;

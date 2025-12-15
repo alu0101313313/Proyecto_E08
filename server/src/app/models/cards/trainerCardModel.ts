@@ -1,7 +1,6 @@
 import { Schema, model } from 'mongoose';
 import type { ITrainerCard } from '../../interface/cards/ITrainerCard.js';
 import { TypeConditionCard } from '../../enums/enumConditionCard.js';
-
 /**
  * Esquema de Mongoose para la entidad TrainerCard
  * 
@@ -71,5 +70,4 @@ const trainerCardSchema = new Schema<ITrainerCard>({
     },
   }
 })
-
 export const TrainerCard = model<ITrainerCard>('TrainerCard', trainerCardSchema);

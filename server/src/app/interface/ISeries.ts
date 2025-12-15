@@ -1,6 +1,5 @@
 import { Document } from "mongoose";
 import type { ISetBrief } from "./ISets.js";
-
 /**
  * Interfaz principal para el documento de Serie.
  * 
@@ -16,7 +15,6 @@ export interface ISeries extends Document {
   logo: string;
   sets: Array<ISetBrief>
 }
-
 /**
  * Interfaz breve para representar una serie
  * 

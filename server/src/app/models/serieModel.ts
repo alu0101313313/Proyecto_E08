@@ -1,6 +1,5 @@
 import {model, Schema} from 'mongoose';
 import type { ISeries } from '../interface/ISeries.js';
-
 /**
  * Mongoose schema and model for the Serie entity.
  * 
@@ -16,5 +15,4 @@ const serieSchema = new Schema<ISeries>({
   logo: { type: String, required: true },
   sets: { type: [Object], required: true },
 });
-
 export const Series = model<ISeries>('Serie', serieSchema);
