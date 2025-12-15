@@ -106,4 +106,98 @@ describe('setRouter', () => {
     expect(res.body).toHaveProperty('message', 'Set deleted successfully');
     expect(res.body).toHaveProperty('deletedSet');
   });
+
+  it('POST /sets handles duplicate key error (code 11000)', async () => {
+    mockFindOne.mockResolvedValue(null);
+    const apiResponse = { some: 'response' };
+    mockGet.mockResolvedValue(apiResponse);
+    const setDict = { id: 'duplicate', name: 'Duplicate Set' };
+    mockDataclassToDict.mockReturnValue(setDict);
+    mockSave.mockRejectedValue({ code: 11000 });
+    const app = createApp();
+    const res = await request(app).post('/sets').send({ id: 'duplicate' });
+    expect(res.status).toBe(409);
+    expect(res.body).toHaveProperty('message', 'Set with this ID already exists');
+  });
+
+  it('POST /sets handles generic error', async () => {
+    mockFindOne.mockResolvedValue(null);
+    const apiResponse = { some: 'response' };
+    mockGet.mockResolvedValue(apiResponse);
+    const setDict = { id: 'error', name: 'Error Set' };
+    mockDataclassToDict.mockReturnValue(setDict);
+    mockSave.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).post('/sets').send({ id: 'error' });
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error creating set');
+  });
+
+  it('GET /sets/:_id returns 200 when set found', async () => {
+    const set = { _id: '123', id: 'abc', name: 'Test Set' };
+    mockFindOne.mockResolvedValue(set);
+    const app = createApp();
+    const res = await request(app).get('/sets/123');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(set);
+  });
+
+  it('GET /sets/:_id handles error', async () => {
+    mockFindOne.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).get('/sets/123');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error retrieving set');
+  });
+
+  it('GET /sets with name filter', async () => {
+    const sets = [{ id: 'a', name: 'Test' }];
+    mockFind.mockResolvedValue(sets);
+    const app = createApp();
+    const res = await request(app).get('/sets?name=Test');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(sets);
+    expect(mockFind).toHaveBeenCalledWith({ name: 'Test' });
+  });
+
+  it('GET /sets handles error', async () => {
+    mockFind.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).get('/sets');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error retrieving sets');
+  });
+
+  it('GET /sets/:id returns 404 when not found by id field', async () => {
+    mockFindOne.mockResolvedValue(null);
+    const app = createApp();
+    const res = await request(app).get('/sets/unknown');
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('message', 'Set not found');
+  });
+
+  it('GET /sets/:id returns 200 when found by id field', async () => {
+    const set = { _id: '123', id: 'abc123', name: 'Test Set' };
+    mockFindOne.mockResolvedValue(set);
+    const app = createApp();
+    const res = await request(app).get('/sets/abc123');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(set);
+  });
+
+  it('GET /sets/:id handles error', async () => {
+    mockFindOne.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).get('/sets/abc');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error retrieving set');
+  });
+
+  it('DELETE /sets/:_id handles error', async () => {
+    mockFindOneAndDelete.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).delete('/sets/123');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error deleting set');
+  });
 });

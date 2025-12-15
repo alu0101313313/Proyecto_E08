@@ -105,4 +105,98 @@ describe('serieRouter', () => {
     expect(res.body).toHaveProperty('message', 'Serie deleted successfully');
     expect(res.body).toHaveProperty('deletedSerie');
   });
+
+  it('POST /series handles duplicate key error (code 11000)', async () => {
+    mockFindOne.mockResolvedValue(null);
+    const apiResponse = { some: 'response' };
+    mockGet.mockResolvedValue(apiResponse);
+    const serieDict = { id: 'duplicate', name: 'Duplicate Serie' };
+    mockDataclassToDict.mockReturnValue(serieDict);
+    mockSave.mockRejectedValue({ code: 11000 });
+    const app = createApp();
+    const res = await request(app).post('/series').send({ id: 'duplicate' });
+    expect(res.status).toBe(409);
+    expect(res.body).toHaveProperty('message', 'Serie with this ID already exists');
+  });
+
+  it('POST /series handles generic error', async () => {
+    mockFindOne.mockResolvedValue(null);
+    const apiResponse = { some: 'response' };
+    mockGet.mockResolvedValue(apiResponse);
+    const serieDict = { id: 'error', name: 'Error Serie' };
+    mockDataclassToDict.mockReturnValue(serieDict);
+    mockSave.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).post('/series').send({ id: 'error' });
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error creating serie');
+  });
+
+  it('GET /series/:_id returns 200 when serie found', async () => {
+    const serie = { _id: '123', id: 'abc', name: 'Test Serie' };
+    mockFindOne.mockResolvedValue(serie);
+    const app = createApp();
+    const res = await request(app).get('/series/123');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(serie);
+  });
+
+  it('GET /series/:_id handles error', async () => {
+    mockFindOne.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).get('/series/123');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error retrieving serie');
+  });
+
+  it('GET /series with name filter', async () => {
+    const series = [{ id: 'a', name: 'Test' }];
+    mockFind.mockResolvedValue(series);
+    const app = createApp();
+    const res = await request(app).get('/series?name=Test');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(series);
+    expect(mockFind).toHaveBeenCalledWith({ name: 'Test' });
+  });
+
+  it('GET /series handles error', async () => {
+    mockFind.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).get('/series');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error retrieving series');
+  });
+
+  it('GET /series/:id returns 404 when not found by id field', async () => {
+    mockFindOne.mockResolvedValue(null);
+    const app = createApp();
+    const res = await request(app).get('/series/unknown');
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('message', 'Serie not found');
+  });
+
+  it('GET /series/:id returns 200 when found by id field', async () => {
+    const serie = { _id: '123', id: 'abc123', name: 'Test Serie' };
+    mockFindOne.mockResolvedValue(serie);
+    const app = createApp();
+    const res = await request(app).get('/series/abc123');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(serie);
+  });
+
+  it('GET /series/:id handles error', async () => {
+    mockFindOne.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).get('/series/abc');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error retrieving serie');
+  });
+
+  it('DELETE /series/:id handles error', async () => {
+    mockFindOneAndDelete.mockRejectedValue(new Error('Database error'));
+    const app = createApp();
+    const res = await request(app).delete('/series/123');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error deleting serie');
+  });
 });
