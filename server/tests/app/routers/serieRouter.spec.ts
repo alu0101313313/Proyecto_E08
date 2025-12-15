@@ -11,7 +11,7 @@ vi.mock('../../../src/app/models/serieModel.js', () => {
   mockFind = vi.fn();
   mockFindOneAndDelete = vi.fn();
   mockSave = vi.fn().mockResolvedValue(true);
-  function Series(data: any) {
+  function Series(this: any, data: any) {
     this.data = data;
     this.save = mockSave;
   }

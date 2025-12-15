@@ -140,6 +140,18 @@ describe('executeTradeRouter POST /', () => {
 		expect(res.json).toHaveBeenCalledWith({ error: 'El intercambio no ha sido aceptado por ambas partes' });
 	});
 
+	it('debe devolver 400 si no existe lastTradeProposal en la conversación', async () => {
+		const conversationDoc = {
+			messages: [],
+			save: vi.fn(),
+		};
+		mocks.Conversation.findById.mockReturnValue({ session: () => conversationDoc });
+		req.body = { conversationId: 'conv-missing' };
+		await handler()!(req as Request, res as Response);
+		expect(res.status).toHaveBeenCalledWith(400);
+		expect(res.json).toHaveBeenCalledWith({ error: 'No existe propuesta de intercambio' });
+	});
+
 	it('debe devolver 400 si alguna carta no es intercambiable', async () => {
 		const proposerCardId = 'cardA';
 		const receiverCardId = 'cardB';
@@ -173,6 +185,26 @@ describe('executeTradeRouter POST /', () => {
 
 		expect(res.status).toHaveBeenCalledWith(400);
 		expect(res.json).toHaveBeenCalledWith({ error: 'Carta no intercambiable: Pikachu' });
+	});
+
+	it('debe devolver 400 si una carta no se encuentra', async () => {
+		const missingId = 'missingCard';
+		const conversationDoc = {
+			lastTradeProposal: {
+				proposal: {
+					proposer: { userId: 'userA', accepted: true, cards: [{ cardType: 'PokemonCard', cardId: missingId }] },
+					receiver: { userId: 'userB', accepted: true, cards: [] },
+				},
+			},
+			messages: [],
+			save: vi.fn(),
+		};
+		mocks.Conversation.findById.mockReturnValue({ session: () => conversationDoc });
+		mocks.PokemonCard.findById.mockReturnValue({ session: () => null });
+		req.body = { conversationId: 'conv-missing-card' };
+		await handler()!(req as Request, res as Response);
+		expect(res.status).toHaveBeenCalledWith(400);
+		expect(res.json).toHaveBeenCalledWith({ error: `Carta no encontrada: ${missingId}` });
 	});
 
 	it('debe devolver 400 si el owner de una carta no coincide', async () => {
@@ -248,6 +280,68 @@ describe('executeTradeRouter POST /', () => {
 		// Side-effects assertions
 		expect(mocks.PokemonCard.updateOne).toHaveBeenCalledTimes(2);
 		expect(conversationDoc.save).toHaveBeenCalled();
+	});
+
+	it('debe manejar tipos Trainer y Energy, aplicar fallbacks y omitir items nulos en el build', async () => {
+		const trainerId = 't1';
+		const energyId = 'e1';
+		const conversationDoc: any = {
+			lastTradeProposal: {
+				proposal: {
+					proposer: { userId: 'userA', accepted: true, cards: [{ cardType: 'TrainerCard', cardId: trainerId }] },
+					receiver: { userId: 'userB', accepted: true, cards: [{ cardType: 'EnergyCard', cardId: energyId }] },
+				},
+			},
+			messages: [],
+			save: vi.fn(),
+		};
+		mocks.Conversation.findById.mockReturnValue({ session: () => conversationDoc });
+		// Validation pass returns docs; build pass returns null for trainer to exercise no-push branch
+		let trainerCalls = 0;
+		mocks.TrainerCard.findById.mockImplementation((_id: string) => ({
+			session: () => {
+				trainerCalls += 1;
+				if (trainerCalls === 1) {
+					return { _id: { toString: () => 'locT' }, id: 'apiT', name: 'Prof', image: 'imgT', isTradable: true, owner: { equals: (u: string) => u === 'userA' } };
+				}
+				return null; // build phase -> omit push
+			},
+		}));
+		let energyCalls = 0;
+		mocks.EnergyCard.findById.mockImplementation((_id: string) => ({
+			session: () => {
+				energyCalls += 1;
+				// both validation and build return a doc, but with missing name/image to trigger fallbacks
+				return { _id: { toString: () => 'locE' }, id: 'apiE', name: undefined, image: undefined, isTradable: true, owner: { equals: (u: string) => u === 'userB' } };
+			},
+		}));
+		mocks.TrainerCard.updateOne.mockResolvedValue({});
+		mocks.EnergyCard.updateOne.mockResolvedValue({});
+		(mocks.Trade as any).prototype.save.mockResolvedValue({});
+		req.body = { conversationId: 'conv-mixed' };
+		await handler()!(req as Request, res as Response);
+		expect(res.status).toHaveBeenCalledWith(201);
+		// Ensure updateOne was called for both types
+		expect(mocks.TrainerCard.updateOne).toHaveBeenCalledTimes(1);
+		expect(mocks.EnergyCard.updateOne).toHaveBeenCalledTimes(1);
+	});
+
+	it('debe devolver 400 si el tipo de carta es inválido', async () => {
+		const conversationDoc = {
+			lastTradeProposal: {
+				proposal: {
+					proposer: { userId: 'userA', accepted: true, cards: [{ cardType: 'UnknownType', cardId: 'x' }] },
+					receiver: { userId: 'userB', accepted: true, cards: [] },
+				},
+			},
+			messages: [],
+			save: vi.fn(),
+		};
+		mocks.Conversation.findById.mockReturnValue({ session: () => conversationDoc });
+		req.body = { conversationId: 'conv-bad-type' };
+		await handler()!(req as Request, res as Response);
+		expect(res.status).toHaveBeenCalledWith(400);
+		expect(res.json).toHaveBeenCalledWith({ error: 'Tipo de carta inválido: UnknownType' });
 	});
 });
 

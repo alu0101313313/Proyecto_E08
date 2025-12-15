@@ -11,7 +11,7 @@ vi.mock('../../../src/app/models/setModel.js', () => {
   mockFind = vi.fn();
   mockFindOneAndDelete = vi.fn();
   mockSave = vi.fn().mockResolvedValue(true);
-  function Sets(data: any) {
+  function Sets(this: any, data: any) {
     this.data = data;
     this.save = mockSave;
   }

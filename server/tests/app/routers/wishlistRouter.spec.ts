@@ -1,6 +1,6 @@
 import express from 'express';
 import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks para el modelo User
 var mockFindById: any;
 var mockSave: any;
@@ -48,12 +48,39 @@ beforeEach(() => {
   mockMapRarity.mockReset();
 });
 describe('wishlistRouter', () => {
+  it('GET /wishlist returns 401 when not authorized (no req.user)', async () => {
+    // Fuerza al middleware a no inyectar usuario
+    vi.doMock('../../../src/app/middleware/authMiddleware.js', () => {
+      const protect = (req: any, res: any, next: any) => {
+        next();
+      };
+      return { protect };
+    });
+    // Necesitamos una nueva app con un nuevo router re-importado usando el mock anterior
+    vi.resetModules();
+    const { wishlistRouter: wlRouter } = await import('../../../src/app/routers/wishlistRouter');
+    const app = express();
+    app.use(express.json());
+    app.use(wlRouter);
+    const res = await request(app).get('/wishlist');
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message', 'No autorizado');
+  });
   it('GET /wishlist returns 404 when user not found', async () => {
     mockFindById.mockResolvedValue(null);
     const app = createApp();
     const res = await request(app).get('/wishlist');
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('message', 'Usuario no encontrado');
+  });
+  it('GET /wishlist handles empty or undefined wishlist gracefully', async () => {
+    const userObj: any = { save: mockSave }; // wishlist undefined
+    mockFindById.mockResolvedValue(userObj);
+    const app = createApp();
+    const res = await request(app).get('/wishlist');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
   });
   it('GET /wishlist returns card details mapping rarity', async () => {
     const wishlistIds = ['sv1-1', 'xy-2'];
@@ -86,11 +113,58 @@ describe('wishlistRouter', () => {
     expect(mockDataclassToDict).toHaveBeenCalledTimes(2);
     expect(mockMapRarity).toHaveBeenCalled();
   });
+  it('GET /wishlist filters out failed external card fetches (nulls)', async () => {
+    const wishlistIds = ['ok-1', 'bad-1'];
+    const userObj: any = { wishlist: [...wishlistIds], save: mockSave };
+    mockFindById.mockResolvedValue(userObj);
+    const okResp = { id: 'ok-1' };
+    mockGet.mockImplementation((id: string) => {
+      if (id === 'ok-1') return Promise.resolve(okResp);
+      return Promise.reject(new Error('fetch failed'));
+    });
+    mockDataclassToDict.mockImplementation((d: any) => ({ id: d.id }));
+    mockMapRarity.mockImplementation((r: any) => r);
+    const app = createApp();
+    const res = await request(app).get('/wishlist');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toEqual([{ id: 'ok-1' }]);
+  });
+  it('GET /wishlist returns 500 when DB throws', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockFindById.mockRejectedValue(new Error('db error'));
+    const app = createApp();
+    const res = await request(app).get('/wishlist');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error obteniendo wishlist');
+    spy.mockRestore();
+  });
   it('POST /wishlist returns 400 when cardId missing', async () => {
     const app = createApp();
     const res = await request(app).post('/wishlist').send({});
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message', 'Falta cardId');
+  });
+  it('POST /wishlist returns 401 when not authorized (no req.user)', async () => {
+    vi.doMock('../../../src/app/middleware/authMiddleware.js', () => {
+      const protect = (req: any, res: any, next: any) => next();
+      return { protect };
+    });
+    vi.resetModules();
+    const { wishlistRouter: wlRouter } = await import('../../../src/app/routers/wishlistRouter');
+    const app = express();
+    app.use(express.json());
+    app.use(wlRouter);
+    const res = await request(app).post('/wishlist').send({ cardId: 'x' });
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message', 'No autorizado');
+  });
+  it('POST /wishlist returns 404 when user not found', async () => {
+    mockFindById.mockResolvedValue(null);
+    const app = createApp();
+    const res = await request(app).post('/wishlist').send({ cardId: 'sv1-1' });
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('message', 'Usuario no encontrado');
   });
   it('POST /wishlist returns 200 when already in wishlist', async () => {
     const userObj: any = { wishlist: ['sv1-1'], save: mockSave };
@@ -111,6 +185,15 @@ describe('wishlistRouter', () => {
     expect(res.body.wishlist).toContain('new-card');
     expect(mockSave).toHaveBeenCalled();
   });
+  it('POST /wishlist returns 500 when save throws', async () => {
+    const failingSave = vi.fn().mockRejectedValue(new Error('save failed'));
+    const userObj: any = { wishlist: [], save: failingSave };
+    mockFindById.mockResolvedValue(userObj);
+    const app = createApp();
+    const res = await request(app).post('/wishlist').send({ cardId: 'x' });
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error añadiendo a wishlist');
+  });
   it('DELETE /wishlist/:cardId removes card from wishlist', async () => {
     const userObj: any = { wishlist: ['a', 'b', 'c'], save: mockSave };
     mockFindById.mockResolvedValue(userObj);
@@ -128,4 +211,33 @@ describe('wishlistRouter', () => {
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('message', 'Usuario no encontrado');
   });
+  it('DELETE /wishlist/:cardId returns 401 when not authorized (no req.user)', async () => {
+    vi.doMock('../../../src/app/middleware/authMiddleware.js', () => {
+      const protect = (req: any, res: any, next: any) => next();
+      return { protect };
+    });
+    vi.resetModules();
+    const { wishlistRouter: wlRouter } = await import('../../../src/app/routers/wishlistRouter');
+    const app = express();
+    app.use(express.json());
+    app.use(wlRouter);
+    const res = await request(app).delete('/wishlist/any');
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message', 'No autorizado');
+  });
+  it('DELETE /wishlist/:cardId returns 500 when save throws', async () => {
+    const failingSave = vi.fn().mockRejectedValue(new Error('save failed'));
+    const userObj: any = { wishlist: ['a', 'b'], save: failingSave };
+    mockFindById.mockResolvedValue(userObj);
+    const app = createApp();
+    const res = await request(app).delete('/wishlist/a');
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'Error eliminando de wishlist');
+  });
+});
+
+afterEach(() => {
+  // Asegura que las redefiniciones de mocks de auth no afecten a otros tests
+  vi.resetModules();
+  vi.doUnmock('../../../src/app/middleware/authMiddleware.js');
 });

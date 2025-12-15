@@ -74,4 +74,24 @@ describe('Register Controller', () => {
       message: expect.stringContaining('registrado exitosamente'),
     }));
   });
+
+  it('debería devolver 400 si el usuario o email ya existen', async () => {
+    req.body = { username: 'existingUser', email: 'exist@test.com', password: 'abc123' };
+    mocks.findOne.mockResolvedValue({ _id: 'existing_id', email: 'exist@test.com' });
+    await registerController.registerUser(req as Request, res as Response, next);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    const error = (next as any).mock.calls[0][0];
+    expect(error.message).toBe('El usuario o email ya existen');
+  });
+
+  it('debería propagar error si el guardado falla', async () => {
+    req.body = { username: 'newUser2', email: 'new2@test.com', password: 'abc123' };
+    mocks.findOne.mockResolvedValue(null);
+    mocks.save.mockRejectedValue(new Error('DB save error'));
+    await registerController.registerUser(req as Request, res as Response, next);
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    const error = (next as any).mock.calls[0][0];
+    expect(error.message).toBe('DB save error');
+  });
 });
