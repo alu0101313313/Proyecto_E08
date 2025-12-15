@@ -12,6 +12,9 @@
     "@types/node": "^24.10.0",
     "@types/socket.io": "^3.0.2",
     "@types/supertest": "^6.0.3",
+    "@vitest/coverage-istanbul": "4.0.15",
+    "@vitest/coverage-v8": "4.0.15",
+    "coveralls": "^3.1.1",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
@@ -38,6 +41,8 @@
     "dev": "bun --watch src/server.ts",
     "build": "bun tsc",
     "start": "bun dist/server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "coveralls": "cat coverage/lcov.info | coveralls"
   }
 }

@@ -65,7 +65,87 @@ beforeEach(async () => {
   mockEnergyFind = energyModule.EnergyCard.find;
 });
 
-describe('Collection Router - POST /collection/add', () => {
+describe('Collection Router - POST /collection/add con supertest', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('POST /collection/add añade una carta nueva correctamente', async () => {
+    const cardId = new mongoose.Types.ObjectId();
+    const mockUserData = {
+      _id: new mongoose.Types.ObjectId(),
+      cardCollection: [],
+      save: vi.fn().mockResolvedValue(true)
+    };
+
+    mockFindById.mockResolvedValue(mockUserData);
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/collection/add')
+      .send({ cardId: cardId.toString() });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Carta añadida');
+    expect(mockUserData.save).toHaveBeenCalled();
+  });
+
+  it('POST /collection/add rechaza si la carta ya existe', async () => {
+    const cardId = new mongoose.Types.ObjectId();
+    const mockUserData = {
+      _id: new mongoose.Types.ObjectId(),
+      cardCollection: [cardId],
+      save: vi.fn().mockResolvedValue(true)
+    };
+
+    mockFindById.mockResolvedValue(mockUserData);
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/collection/add')
+      .send({ cardId: cardId.toString() });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Carta ya en la colección');
+    expect(mockUserData.save).not.toHaveBeenCalled();
+  });
+
+  it('POST /collection/add rechaza sin cardId', async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post('/collection/add')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('cardId es requerido');
+  });
+
+  it('POST /collection/add rechaza si el usuario no existe en BD', async () => {
+    mockFindById.mockResolvedValue(null);
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/collection/add')
+      .send({ cardId: new mongoose.Types.ObjectId().toString() });
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Usuario no encontrado');
+  });
+
+  it('POST /collection/add devuelve 500 si hay error en BD', async () => {
+    mockFindById.mockRejectedValue(new Error('DB Error'));
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/collection/add')
+      .send({ cardId: new mongoose.Types.ObjectId().toString() });
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Error al añadir carta');
+  });
+});
+
+describe('Collection Router - POST /collection/add (tests unitarios)', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;
@@ -207,7 +287,7 @@ describe('Collection Router - POST /collection/add', () => {
       expect(normalized).toBe('invalid-id');
     });
   });
-  describe('DELETE /collection/:cardId', () => {
+  describe('DELETE /collection/:cardId (tests unitarios)', () => {
     it('debería eliminar una carta de la colección', async () => {
       const cardId = new mongoose.Types.ObjectId();
       req.params = { cardId: cardId.toString() };
@@ -244,6 +324,51 @@ describe('Collection Router - POST /collection/add', () => {
       }
       expect((res.status as any).mock.calls[0][0]).toBe(404);
     });
+  });
+});
+
+describe('Collection Router - DELETE /collection/:cardId con supertest', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('DELETE /collection/:cardId elimina una carta correctamente', async () => {
+    const cardId = new mongoose.Types.ObjectId();
+    const mockUpdatedUser = {
+      _id: new mongoose.Types.ObjectId(),
+      cardCollection: []
+    };
+
+    mockFindByIdAndUpdate.mockResolvedValue(mockUpdatedUser);
+
+    const app = createApp();
+    const res = await request(app).delete(`/collection/${cardId.toString()}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Carta eliminada');
+    expect(mockFindByIdAndUpdate).toHaveBeenCalled();
+  });
+
+  it('DELETE /collection/:cardId rechaza si el usuario no existe', async () => {
+    const cardId = new mongoose.Types.ObjectId();
+    mockFindByIdAndUpdate.mockResolvedValue(null);
+
+    const app = createApp();
+    const res = await request(app).delete(`/collection/${cardId.toString()}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('Usuario no encontrado');
+  });
+
+  it('DELETE /collection/:cardId devuelve 500 si hay error en BD', async () => {
+    const cardId = new mongoose.Types.ObjectId();
+    mockFindByIdAndUpdate.mockRejectedValue(new Error('DB Error'));
+
+    const app = createApp();
+    const res = await request(app).delete(`/collection/${cardId.toString()}`);
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Error al eliminar carta');
   });
 });
 
@@ -285,6 +410,49 @@ describe('Collection Router - GET handlers', () => {
     expect(typeof res.body[0]._id).toBe('string');
   });
 
+  it('GET /collection con userId en query devuelve cartas de otro usuario', async () => {
+    const otherUserId = new mongoose.Types.ObjectId();
+    const p1 = { _id: new mongoose.Types.ObjectId(), id: 'p1', name: 'P1' };
+
+    mockPokemonFind.mockImplementation(() => {
+      const p = Promise.resolve([p1]);
+      (p as any).lean = vi.fn().mockResolvedValue([p1]);
+      return p as any;
+    });
+    mockTrainerFind.mockImplementation(() => {
+      const p = Promise.resolve([]);
+      (p as any).lean = vi.fn().mockResolvedValue([]);
+      return p as any;
+    });
+    mockEnergyFind.mockImplementation(() => {
+      const p = Promise.resolve([]);
+      (p as any).lean = vi.fn().mockResolvedValue([]);
+      return p as any;
+    });
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection')
+      .query({ userId: otherUserId.toString() });
+
+    expect(res.status).toBe(200);
+    expect(mockPokemonFind).toHaveBeenCalledWith({ owner: otherUserId });
+  });
+
+  it('GET /collection devuelve 500 si hay error en la BD', async () => {
+    mockPokemonFind.mockImplementation(() => {
+      const p = Promise.reject(new Error('DB Error'));
+      (p as any).lean = vi.fn().mockRejectedValue(new Error('DB Error'));
+      return p as any;
+    });
+
+    const app = createApp();
+    const res = await request(app).get('/collection');
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Error al obtener la colección');
+  });
+
   it('GET /collection/filter aplica filtros y devuelve resultados', async () => {
     const pA = { _id: new mongoose.Types.ObjectId(), id: 'pa', name: 'PA', rarity: 'Rare', condition: 'Good' };
 
@@ -303,5 +471,132 @@ describe('Collection Router - GET handlers', () => {
     expect(res.body.length).toBe(1);
     expect(res.body[0]).toHaveProperty('id', 'pa');
     expect(mockPokemonFind).toHaveBeenCalled();
+  });
+
+  it('GET /collection/filter con múltiples filtros (rarity, condition, isTradable)', async () => {
+    const pA = { 
+      _id: new mongoose.Types.ObjectId(), 
+      id: 'pa', 
+      name: 'PA', 
+      rarity: 'Rare', 
+      condition: 'Mint',
+      isTradable: true 
+    };
+
+    mockPokemonFind.mockResolvedValue([pA]);
+    mockTrainerFind.mockResolvedValue([]);
+    mockEnergyFind.mockResolvedValue([]);
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection/filter')
+      .query({ 
+        rarity: 'Rare,Common', 
+        condition: 'Mint,Good',
+        isTradable: 'true',
+        cardType: 'Pokemon'
+      });
+
+    expect(res.status).toBe(200);
+    expect(mockPokemonFind).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rarity: { $in: ['Rare', 'Common'] },
+        condition: { $in: ['Mint', 'Good'] },
+        isTradable: true
+      })
+    );
+  });
+
+  it('GET /collection/filter sin cardType busca en todas las colecciones', async () => {
+    const pA = { _id: new mongoose.Types.ObjectId(), id: 'pa', name: 'PA' };
+    const tA = { _id: new mongoose.Types.ObjectId(), id: 'ta', name: 'TA' };
+
+    mockPokemonFind.mockResolvedValue([pA]);
+    mockTrainerFind.mockResolvedValue([tA]);
+    mockEnergyFind.mockResolvedValue([]);
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection/filter')
+      .query({ rarity: 'Rare' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(2);
+    expect(mockPokemonFind).toHaveBeenCalled();
+    expect(mockTrainerFind).toHaveBeenCalled();
+    expect(mockEnergyFind).toHaveBeenCalled();
+  });
+
+  it('GET /collection/filter con cardType múltiple (Trainer,Energy)', async () => {
+    const tA = { _id: new mongoose.Types.ObjectId(), id: 'ta', name: 'TA' };
+    const eA = { _id: new mongoose.Types.ObjectId(), id: 'ea', name: 'EA' };
+
+    mockPokemonFind.mockResolvedValue([]);
+    mockTrainerFind.mockResolvedValue([tA]);
+    mockEnergyFind.mockResolvedValue([eA]);
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection/filter')
+      .query({ cardType: 'Trainer,Energy' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(2);
+    expect(mockTrainerFind).toHaveBeenCalled();
+    expect(mockEnergyFind).toHaveBeenCalled();
+  });
+
+  it('GET /collection/filter con userId en query', async () => {
+    const otherUserId = new mongoose.Types.ObjectId();
+    const pA = { _id: new mongoose.Types.ObjectId(), id: 'pa', name: 'PA' };
+
+    mockPokemonFind.mockResolvedValue([pA]);
+    mockTrainerFind.mockResolvedValue([]);
+    mockEnergyFind.mockResolvedValue([]);
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection/filter')
+      .query({ userId: otherUserId.toString(), cardType: 'Pokemon' });
+
+    expect(res.status).toBe(200);
+    expect(mockPokemonFind).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: otherUserId
+      })
+    );
+  });
+
+  it('GET /collection/filter con cartas que tienen toObject', async () => {
+    const pA = { 
+      _id: new mongoose.Types.ObjectId(), 
+      id: 'pa', 
+      name: 'PA',
+      toObject: vi.fn().mockReturnValue({ _id: 'converted', id: 'pa', name: 'PA' })
+    };
+
+    mockPokemonFind.mockResolvedValue([pA]);
+    mockTrainerFind.mockResolvedValue([]);
+    mockEnergyFind.mockResolvedValue([]);
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection/filter')
+      .query({ cardType: 'Pokemon' });
+
+    expect(res.status).toBe(200);
+    expect(pA.toObject).toHaveBeenCalled();
+  });
+
+  it('GET /collection/filter devuelve 500 si hay error en la BD', async () => {
+    mockPokemonFind.mockRejectedValue(new Error('DB Error'));
+
+    const app = createApp();
+    const res = await request(app)
+      .get('/collection/filter')
+      .query({ cardType: 'Pokemon' });
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Error al filtrar las cartas');
   });
 });

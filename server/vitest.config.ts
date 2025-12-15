@@ -4,5 +4,10 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: ['tests/setup.ts'], // si añadiste el mock global
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: 'coverage',
+    },
   },
 });
